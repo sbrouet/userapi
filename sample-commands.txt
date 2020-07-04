@@ -1,0 +1,54 @@
+# SAMPLE COMMANDS
+
+# List of all users
+curl http://localhost:8080/users/
+# [{"id":1,"firstName":"Nikola","email":"ntesla@userapi.sbr","password":"@x5RK!~;2<JmwSC"},{"id":2,"firstName":"Albert","email":"aeinstein@userapi.sbr","password":"pEJHewG2+EvNZ$"},{"id":3,"firstName":"Albert","email":"aotherguy@userapi.sbr","password":"oo@bcDsxmCI7~06vX$j"}]
+
+
+# Get existing user with id 1
+curl http://localhost:8080/users/1
+# {"id":1,"firstName":"Nikola","email":"ntesla@userapi.sbr","password":"@x5RK!~;2<JmwSC"}
+
+
+# Get NON existing user with id 999
+curl http://localhost:8080/users/999
+# {"timestamp":"2020-07-04T12:27:07.228+00:00","status":404,"error":"Not Found","message":"","path":"/users/999"}
+
+
+# Find user by first name
+curl http://localhost:8080/users/find?first-name=Albert
+# There are 2 users wih first name "Alert"
+#[{"id":2,"firstName":"Albert","email":"aeinstein@userapi.sbr","password":"pEJHewG2+EvNZ$"},{"id":3,"firstName":"Albert","email":"aotherguy@userapi.sbr","password":"oo@bcDsxmCI7~06vX$j"}]
+
+# Find user by first name AND email
+# WARNING : beware of the '&' character that needs to be escaped under shell
+curl http://localhost:8080/users/find?first-name=Albert\&email=aeinstein@userapi.sbr
+# There is only 1 user matching
+[{"id":2,"firstName":"Albert","email":"aeinstein@userapi.sbr","password":"pEJHewG2+EvNZ$"}]
+
+
+# Create a new user
+curl -X POST http://localhost:8080/users -H 'Content-type:application/json' -d '{"firstName":"Youri","email":"ygagarin@themoon.sbr","password":"avoidCharactersThatWouldBreakCommandLineForDemo"}'
+# {"id":5,"firstName":"Youri","email":"ygagarin@themoon.sbr","password":"avoidCharactersThatWouldBreakCommandLineForDemo"}
+
+# Create a new user with an invalid (too long) password
+curl -X POST http://localhost:8080/users -H 'Content-type:application/json' -d '{"firstName":"Youri","email":"ygagarin@themoon.sbr","password":"thisPasswordIsreallyTooLongWithMoreThanfiftyCharacters"}'
+# {"timestamp":"2020-07-06T08:12:07.957+00:00","status":422,"error":"Unprocessable Entity","message":"","path":"/users"}
+
+
+# Fully update an existing user
+curl -X PUT http://localhost:8080/users -H 'Content-type:application/json' -d '{"id":2,"firstName":"Albert","email":"albert_einstein@userapi.sbr","password":"pEJHewG2+EvNZ$"}'
+# {"id":2,"firstName":"Albert","email":"albert_einstein@userapi.sbr","password":"newPassword"}
+# Check : get it back again
+curl http://localhost:8080/users/2
+
+
+# PATCH an existing user (change email)
+curl -i -X PATCH http://localhost:8080/users/2 -H "Content-Type: application/json-patch+json" -d '[{"op":"replace","path":"/firstName","value":"Alberto"}]'
+# Check : get it back again
+curl http://localhost:8080/users/2
+
+# Delete an existing user
+curl -X DELETE http://localhost:8080/users/1
+# When user is found and deleted : {"timestamp":"2020-07-06T06:51:24.871+00:00","status":500,"error":"Internal Server Error","message":"","path":"/users/1"}
+# When user is NOT found : {"timestamp":"2020-07-06T06:51:49.149+00:00","status":404,"error":"Not Found","message":"","path":"/users/1"}
