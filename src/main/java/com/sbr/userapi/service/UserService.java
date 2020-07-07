@@ -9,13 +9,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
 import com.sbr.userapi.exception.InvalidValueException;
 import com.sbr.userapi.exception.UserNotFoundException;
 import com.sbr.userapi.exception.location.CannotComputeLocationException;
 import com.sbr.userapi.exception.location.LocationNotAuthorizedException;
+import com.sbr.userapi.messaging.processor.MessageProcessor;
 import com.sbr.userapi.model.User;
+import com.sbr.userapi.model.messaging.Message;
 import com.sbr.userapi.repository.UserRepository;
 import com.sbr.userapi.service.location.LocationService;
 
@@ -32,15 +35,20 @@ public class UserService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
 	/** Repository that allows operations on {@link User users} */
-	UserRepository repository;
+	private UserRepository repository;
 
 	/** Service for checking for the location of an IP address */
-	LocationService locationService;
+	private LocationService locationService;
+
+	// TODO review junits
+	/** Message processor allows sending messages to the cloud messaging system */
+	private MessageProcessor messageProcessor;
 
 	@Autowired
-	public UserService(UserRepository repository, LocationService locationService) {
+	public UserService(UserRepository repository, LocationService locationService, MessageProcessor messageProcessor) {
 		this.repository = repository;
 		this.locationService = locationService;
+		this.messageProcessor = messageProcessor;
 	}
 
 	/**
@@ -146,6 +154,10 @@ public class UserService {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("createUser() New user created : " + createdUser);
 		}
+
+		// Notify any consumer in the cloud messaging system
+		sendMessage(Message.Type.USER_CREATED, createdUser.getId());
+
 		return createdUser;
 	}
 
@@ -177,6 +189,10 @@ public class UserService {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("updateUser (" + user + ") was updated to " + updatedUser.toString());
 		}
+
+		// Notify any consumer in the cloud messaging system
+		sendMessage(Message.Type.USER_UPDATED, user.getId());
+
 		return updatedUser;
 	}
 
@@ -199,9 +215,13 @@ public class UserService {
 		}
 		// Actual delete
 		repository.deleteById(id);
+
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("deleteUserById (" + id + ") user deleted");
 		}
+
+		// Notify any consumer in the cloud messaging system
+		sendMessage(Message.Type.USER_DELETED, id);
 	}
 
 	/**
@@ -223,4 +243,29 @@ public class UserService {
 			throw new InvalidValueException("Password must be not empty and less than 50 characters");
 		}
 	}
+
+	/**
+	 * Send message to the cloud messaging system with given message information
+	 * 
+	 * @param messageType message type see enum {@link Message.Type} for possible
+	 *                    values
+	 * @param userId      the user id the message is about
+	 * 
+	 */
+	private final void sendMessage(final Message.Type messageType, final Long userId) {
+		// TODO user version with timeout + check return value + throw exc / WARN
+		messageProcessor.mainChannel().send(message(new Message(userId, messageType)));
+	}
+
+	/**
+	 * Actually send a message to the cloud messaging system
+	 * 
+	 * @param <T> the message class
+	 * @param val message to be sent
+	 * @return message sent
+	 */
+	private static final <T> org.springframework.messaging.Message<T> message(T val) {
+		return MessageBuilder.withPayload(val).build();
+	}
+
 }
