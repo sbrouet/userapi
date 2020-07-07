@@ -22,7 +22,7 @@ import com.sbr.userapi.exception.location.CannotComputeLocationException;
  */
 @Service
 public class LocationService {
-	final Logger LOGGER = LoggerFactory.getLogger(LocationService.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(LocationService.class);
 
 	/**
 	 * The ISO 3166-1 Alpha 2 code for country Switzerland<BR/>

@@ -29,7 +29,7 @@ import com.sbr.userapi.service.location.LocationService;
  */
 @Service
 public class UserService {
-	final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
 	/** Repository that allows operations on {@link User users} */
 	UserRepository repository;
