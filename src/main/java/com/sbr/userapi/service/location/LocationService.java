@@ -103,8 +103,8 @@ public class LocationService {
 		if (!HttpStatus.OK.equals(response.getStatusCode())
 				|| COUNTRY_UNDEFINED_RESPONSE_BODY.equals(response.getBody())) {
 			if (LOGGER.isInfoEnabled()) {
-				LOGGER.info("Could not compute location for ip [" + ip + "]. HttpStatus [" + response.getStatusCode()
-						+ "] Response Body [" + response.getBody() + "] when calling external location service");
+				LOGGER.info("Could get location from external service for ip [" + ip + "]. HttpStatus ["
+						+ response.getStatusCode() + "] Response Body [" + response.getBody() + "]");
 			}
 			throw new CannotComputeLocationException("Could not compute location for ip [" + ip + "]");
 		}

@@ -25,7 +25,7 @@ public class LocationServiceTest {
 		testArgs = new Object[] { anFrIP };
 		System.out.println(locationService.threadLocalMessageFormat.get().format(testArgs));
 
-		final String ricardoChIP = "104.18.31.124";
+		final String ricardoChIP = "104.18.30.124";
 		testArgs = new Object[] { ricardoChIP };
 		System.out.println(locationService.threadLocalMessageFormat.get().format(testArgs));
 

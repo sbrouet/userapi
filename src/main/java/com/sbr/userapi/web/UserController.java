@@ -122,8 +122,8 @@ public class UserController {
 	public ResponseEntity<User> createUser(@RequestBody User newUser, HttpServletRequest request)
 			throws InvalidValueException, CannotComputeLocationException, LocationNotAuthorizedException {
 		// TODO ! get IP of caller !
-		final String callerIP = request.getRemoteAddr();
-		// final String ricardoChIP = "104.18.31.124";
+		// final String callerIP = request.getRemoteAddr();
+		final String callerIP = "195.186.208.154"; // wwww.swisscom.ch
 
 		return new ResponseEntity<User>(service.createUser(newUser, callerIP), new HttpHeaders(), HttpStatus.CREATED);
 	}

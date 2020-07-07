@@ -42,9 +42,16 @@ public class User {
 	 * working
 	 */
 	public User() {
-
+		super();
 	}
 
+	/**
+	 * Constructor with all fields set except id
+	 * 
+	 * @param firstName user's first name
+	 * @param email     user's email
+	 * @param password  user's password
+	 */
 	public User(final String firstName, final String email, final String password) {
 		this.firstName = firstName;
 		this.email = email;
