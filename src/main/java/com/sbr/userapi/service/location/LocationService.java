@@ -13,8 +13,13 @@ import org.springframework.web.client.RestTemplate;
 
 import com.sbr.userapi.exception.location.CannotComputeLocationException;
 
-// TODO javadoc all
-// TODO test all
+// TODO junit all
+/**
+ * Service which allows checking for the location of an IP address
+ * 
+ * @author sbrouet
+ *
+ */
 @Service
 public class LocationService {
 	final Logger LOGGER = LoggerFactory.getLogger(LocationService.class);
@@ -50,6 +55,9 @@ public class LocationService {
 	private static String COUNTRY_UNDEFINED_RESPONSE_BODY = "Undefined";
 
 	// TODO deprecated use WebClient https://www.baeldung.com/rest-template
+	/**
+	 * Client to the external REST Webservice used to get IP location information
+	 */
 	private RestTemplate restTemplate;
 
 	@Autowired
@@ -57,7 +65,14 @@ public class LocationService {
 		this.restTemplate = builder.build();
 	}
 
-	// TODO javadoc + junit
+	/**
+	 * Indicates whether or not an IP address is from Switzerland
+	 * 
+	 * @param ip IP address to be checked
+	 * @return <code>true</code> when IP is from Switzerland, otherwise return
+	 *         <code>false</code>
+	 * @throws CannotComputeLocationException
+	 */
 	public boolean isCallerFromSwitzerland(final String ip) throws CannotComputeLocationException {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("isCallerFromSwitzerland(" + ip + ")");
@@ -87,9 +102,10 @@ public class LocationService {
 				String.class);
 		if (!HttpStatus.OK.equals(response.getStatusCode())
 				|| COUNTRY_UNDEFINED_RESPONSE_BODY.equals(response.getBody())) {
-			LOGGER.error("Could not compute location for ip [" + ip + "]. HttpStatus [" + response.getStatusCode()
-					+ "] Response Body [" + response.getBody() + "] when calling external location service");
-			// TODO check log is warn/err before each throw new
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("Could not compute location for ip [" + ip + "]. HttpStatus [" + response.getStatusCode()
+						+ "] Response Body [" + response.getBody() + "] when calling external location service");
+			}
 			throw new CannotComputeLocationException("Could not compute location for ip [" + ip + "]");
 		}
 
@@ -100,7 +116,6 @@ public class LocationService {
 		return country;
 	}
 
-	// TODO junit
 	/**
 	 * Build the REST Service URL for requesting location data for given IP address
 	 * 

@@ -96,8 +96,13 @@ public class UserController {
 	/**
 	 * Create a new {@link User} with provided information from the request
 	 * body.<BR/>
-	 * WARNING : this method is NOT idempotent. When called N times, it will create
-	 * N users with N different Ids/URIs
+	 * WARNINGS :
+	 * <UL>
+	 * <LI>this method is NOT idempotent. When called N times, it will create N
+	 * users with N different Ids/URIs</LI>
+	 * <LI>only callers with an IP address in Switzerland are authorized to create
+	 * new users, otherwise the request is rejected</LI>
+	 * </UL>
 	 * 
 	 * @param newUser the new user to be created. If an id is set on the user it
 	 *                will be ignored
@@ -116,8 +121,11 @@ public class UserController {
 	@PostMapping
 	public ResponseEntity<User> createUser(@RequestBody User newUser, HttpServletRequest request)
 			throws InvalidValueException, CannotComputeLocationException, LocationNotAuthorizedException {
-		return new ResponseEntity<User>(service.createUser(newUser, request.getRemoteAddr()), new HttpHeaders(),
-				HttpStatus.CREATED);
+		// TODO ! get IP of caller !
+		final String callerIP = request.getRemoteAddr();
+		// final String ricardoChIP = "104.18.31.124";
+
+		return new ResponseEntity<User>(service.createUser(newUser, callerIP), new HttpHeaders(), HttpStatus.CREATED);
 	}
 
 	/**

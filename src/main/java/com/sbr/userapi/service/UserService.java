@@ -19,6 +19,7 @@ import com.sbr.userapi.model.User;
 import com.sbr.userapi.repository.UserRepository;
 import com.sbr.userapi.service.location.LocationService;
 
+// TODO junit all
 /**
  * Service for CRUD and search operations on {@link User users}. Operations are
  * executed on the the persistence layer
@@ -30,13 +31,17 @@ import com.sbr.userapi.service.location.LocationService;
 public class UserService {
 	final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
-	// TODO javadoc
-	@Autowired
+	/** Repository that allows operations on {@link User users} */
 	UserRepository repository;
 
-	// TODO javadoc
-	@Autowired
+	/** Service for checking for the location of an IP address */
 	LocationService locationService;
+
+	@Autowired
+	public UserService(UserRepository repository, LocationService locationService) {
+		this.repository = repository;
+		this.locationService = locationService;
+	}
 
 	/**
 	 * Find all existing users in database
@@ -71,8 +76,8 @@ public class UserService {
 			}
 			return user.get();
 		} else {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("getUserById (" + id + ") user NOT found");
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("getUserById (" + id + ") user NOT found");
 			}
 			throw new UserNotFoundException("No user found with id [" + id + "]");
 		}
@@ -102,7 +107,9 @@ public class UserService {
 	}
 
 	/**
-	 * Create a new {@link User} with provided information
+	 * Create a new {@link User} with provided information<BR/>
+	 * WARNING : only callers with an IP address in Switzerland are authorized to
+	 * create new users, otherwise the request is rejected
 	 * 
 	 * @param newUser            the new user to be created. If an id is set on the
 	 *                           user it will be ignored
@@ -123,14 +130,12 @@ public class UserService {
 			LOGGER.debug("createUser (user:" + newUser + ", clientRemoteAddrID:" + clientRemoteAddrID + ")");
 		}
 
-		// Check pre-requisite : only callers located in Switzerland can create new
+		// Check pre-requisite : only IP addresses from Switzerland can create new
 		// users, otherwise the request must be rejected
-		// TODO get IP of caller test FR / Switzerland
-		// TODO ! put back correct variable
-		// if (!locationService.isCallerFromSwitzerland("104.18.31.124")) {
 		if (!locationService.isCallerFromSwitzerland(clientRemoteAddrID)) {
+			// if (!locationService.isCallerFromSwitzerland(clientRemoteAddrID)) {
 			throw new LocationNotAuthorizedException(
-					"Only clients from Switzerland are authorized to create new users");
+					"Only clients with an IP address from Switzerland are authorized to create new users");
 		}
 
 		// Id is computed by the ORM -> force id to null here to avoid a value being set
@@ -187,8 +192,8 @@ public class UserService {
 			LOGGER.debug("deleteUserById (" + id + ")");
 		}
 		if (!repository.existsById(id)) {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("deleteUserById (" + id + ") user not found");
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("deleteUserById (" + id + ") user not found");
 			}
 			throw new UserNotFoundException("No user found with id [" + id + "]");
 		}

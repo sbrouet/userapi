@@ -5,12 +5,15 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
  * Exception when the location of a client could not be computed. This can occur
- * when the external service which is used is not responding.
+ * when the external service which is used is not responding.<BR/>
+ * 
+ * It is mapped to Http Status 500 Internal Server Error, which is arguable
+ * because the problem might not be caused by the application but an external
+ * system.
  * 
  * @author sbrouet
  *
  */
-// TODO find better HttpStatus
 @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
 public class CannotComputeLocationException extends Exception {
 
