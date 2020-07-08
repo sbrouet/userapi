@@ -12,6 +12,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
+import com.sbr.userapi.exception.CouldNotSendMessageBusMessage;
 import com.sbr.userapi.exception.InvalidValueException;
 import com.sbr.userapi.exception.UserNotFoundException;
 import com.sbr.userapi.exception.location.CannotComputeLocationException;
@@ -22,7 +23,7 @@ import com.sbr.userapi.model.messaging.Message;
 import com.sbr.userapi.repository.UserRepository;
 import com.sbr.userapi.service.location.LocationService;
 
-// TODO junit all
+// TODO junit all : missing findAll, updateUser, deleteUserById
 /**
  * Service for CRUD and search operations on {@link User users}. Operations are
  * executed on the the persistence layer
@@ -34,13 +35,14 @@ import com.sbr.userapi.service.location.LocationService;
 public class UserService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
+	private static final long SERVICE_BUS_SEND_MESSAGE_TIMEOUT_MILLIS = 2000;
+
 	/** Repository that allows operations on {@link User users} */
 	private UserRepository repository;
 
 	/** Service for checking for the location of an IP address */
 	private LocationService locationService;
 
-	// TODO review junits
 	/** Message processor allows sending messages to a service bus */
 	private MessageProcessor messageProcessor;
 
@@ -131,9 +133,11 @@ public class UserService {
 	 *                                        not be computed
 	 * @throws LocationNotAuthorizedException when the location of the client is not
 	 *                                        authorized
+	 * @throws CouldNotSendMessageBusMessage  when message could not be sent to the
+	 *                                        message bus
 	 */
-	public User createUser(final User newUser, final String clientRemoteAddrID)
-			throws InvalidValueException, CannotComputeLocationException, LocationNotAuthorizedException {
+	public User createUser(final User newUser, final String clientRemoteAddrID) throws InvalidValueException,
+			CannotComputeLocationException, LocationNotAuthorizedException, CouldNotSendMessageBusMessage {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("createUser (user:" + newUser + ", clientRemoteAddrID:" + clientRemoteAddrID + ")");
 		}
@@ -168,10 +172,14 @@ public class UserService {
 	 * 
 	 * @param user the user containing updated information
 	 * @return the updated user
-	 * @throws UserNotFoundException when user could not be found
-	 * @throws InvalidValueException when at least one user field value is invalid
+	 * @throws UserNotFoundException         when user could not be found
+	 * @throws InvalidValueException         when at least one user field value is
+	 *                                       invalid
+	 * @throws CouldNotSendMessageBusMessage when message could not be sent to the
+	 *                                       message bus
 	 */
-	public User updateUser(final User user) throws UserNotFoundException, InvalidValueException {
+	public User updateUser(final User user)
+			throws UserNotFoundException, InvalidValueException, CouldNotSendMessageBusMessage {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("updateUser (" + user + ")");
 		}
@@ -201,9 +209,11 @@ public class UserService {
 	 * {@link UserNotFoundException} is thrown
 	 * 
 	 * @param id id of the user to be deleted
-	 * @throws UserNotFoundException when user could not be found
+	 * @throws UserNotFoundException         when user could not be found
+	 * @throws CouldNotSendMessageBusMessage when message could not be sent to the
+	 *                                       message bus
 	 */
-	public void deleteUserById(final Long id) throws UserNotFoundException {
+	public void deleteUserById(final Long id) throws UserNotFoundException, CouldNotSendMessageBusMessage {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("deleteUserById (" + id + ")");
 		}
@@ -250,11 +260,18 @@ public class UserService {
 	 * @param messageType message type see enum {@link Message.Type} for possible
 	 *                    values
 	 * @param userId      the user id the message is about
+	 * @throws CouldNotSendMessageBusMessage when message could not be sent to the
+	 *                                       message bus
 	 * 
 	 */
-	private final void sendMessage(final Message.Type messageType, final Long userId) {
+	private final void sendMessage(final Message.Type messageType, final Long userId)
+			throws CouldNotSendMessageBusMessage {
 		// TODO user version with timeout + check return value + throw exc / WARN
-		messageProcessor.mainChannel().send(message(new Message(userId, messageType)));
+		if (!messageProcessor.mainChannel().send(message(new Message(userId, messageType)),
+				SERVICE_BUS_SEND_MESSAGE_TIMEOUT_MILLIS)) {
+			throw new CouldNotSendMessageBusMessage(
+					"Failed sengind message : messageType=" + messageType + ", userId=" + userId);
+		}
 	}
 
 	/**

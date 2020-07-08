@@ -7,9 +7,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -25,6 +28,8 @@ import com.sbr.userapi.test.TestUtils;
  *
  */
 @ExtendWith(SpringExtension.class)
+@SpringBootTest
+@Import(com.sbr.userapi.configuration.ConfigurationBean.class)
 public class LocationServiceTest {
 
 	/** An IP address from France, used for mocks */
@@ -58,6 +63,7 @@ public class LocationServiceTest {
 	private static final String SWITZERLAND_COUNTRY_CODE_ISO_3166_1 = "CH";
 
 	@TestConfiguration
+	@SpringBootConfiguration
 	static class LocationServiceTestContextConfiguration {
 
 		/**
@@ -70,6 +76,15 @@ public class LocationServiceTest {
 		public LocationService locationService(RestTemplate restTemplate) {
 			return new LocationService(restTemplate);
 		}
+		// TODO clean : attempt to create the ConfigurationBean in the test and provide
+		// it at constructor of the LocationService
+		/*
+		 * @Bean public ConfigurationBean configurationBean() { // ConfigurationBean
+		 * mock = Mockito.spy(ConfigurationBean.class); // doReturn return new
+		 * ConfigurationBean();
+		 * 
+		 * }
+		 */
 	}
 
 	@Autowired
@@ -77,6 +92,10 @@ public class LocationServiceTest {
 
 	@MockBean
 	private RestTemplate restTemplate;
+
+	/*
+	 * @MockBean private ConfigurationBean configurationBean;
+	 */
 
 	/**
 	 * Test method

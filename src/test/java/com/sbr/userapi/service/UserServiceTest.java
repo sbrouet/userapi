@@ -3,6 +3,7 @@ package com.sbr.userapi.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.times;
 
@@ -26,6 +27,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import com.sbr.userapi.exception.CouldNotSendMessageBusMessage;
 import com.sbr.userapi.exception.InvalidValueException;
 import com.sbr.userapi.exception.UserNotFoundException;
 import com.sbr.userapi.exception.location.CannotComputeLocationException;
@@ -143,6 +145,8 @@ public class UserServiceTest {
 
 		// Mock the channel used to send messages
 		Mockito.when(messageProcessor.mainChannel()).thenReturn(mockMessageChannel);
+		Mockito.when(mockMessageChannel.send(any(org.springframework.messaging.Message.class), anyLong()))
+				.thenReturn(true);
 
 		// TODO check if needed
 		Mockito.when(userRepository.findById(userMichael.getId())).thenReturn(Optional.of(userMichael));
@@ -207,7 +211,8 @@ public class UserServiceTest {
 
 	@Test
 	public void createUser_whenValidUserAndClientRequestFromSwitzerland_userShouldBeCreated()
-			throws InvalidValueException, CannotComputeLocationException, LocationNotAuthorizedException {
+			throws InvalidValueException, CannotComputeLocationException, LocationNotAuthorizedException,
+			CouldNotSendMessageBusMessage {
 		// Create user
 		final User user = userService.createUser(TestUtils.createTestUserCharles(), TestUtils.SWISSCOM_CH_IP);
 
@@ -219,7 +224,7 @@ public class UserServiceTest {
 		// Verify the contents of message send to the message bus
 		final ArgumentCaptor<org.springframework.messaging.Message<Message>> argument = ArgumentCaptor
 				.forClass(org.springframework.messaging.Message.class);
-		Mockito.verify(mockMessageChannel, times(1)).send(argument.capture());
+		Mockito.verify(mockMessageChannel, times(1)).send(argument.capture(), anyLong());
 		final Message msgSent = argument.getValue().getPayload();
 		assertThat(msgSent.getType()).isEqualTo(Message.Type.USER_CREATED);
 		assertThat(msgSent.getUserId()).isEqualTo(user.getId());

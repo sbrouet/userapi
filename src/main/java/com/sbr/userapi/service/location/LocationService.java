@@ -54,6 +54,7 @@ public class LocationService {
 	 */
 	private RestTemplate restTemplate;
 
+	// TODO should be provided at constructor of the LocationService
 	@Autowired
 	private ConfigurationBean configBean;
 

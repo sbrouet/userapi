@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
+import com.sbr.userapi.exception.CouldNotSendMessageBusMessage;
 import com.sbr.userapi.exception.InvalidValueException;
 import com.sbr.userapi.exception.UserNotFoundException;
 import com.sbr.userapi.exception.location.CannotComputeLocationException;
@@ -42,7 +43,6 @@ import com.sbr.userapi.service.UserService;
  *
  */
 @RestController
-// TODO ? add /api/ to the url
 @RequestMapping(UserControllerConstants.REST_API_ROOT_URL)
 public class UserController {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
@@ -131,10 +131,13 @@ public class UserController {
 	 *                                        not be computed
 	 * @throws LocationNotAuthorizedException when the location of the client is not
 	 *                                        authorized
+	 * @throws CouldNotSendMessageBusMessage  when message could not be sent to the
+	 *                                        message bus
 	 */
 	@PostMapping
 	public ResponseEntity<User> createUser(@RequestBody User newUser, HttpServletRequest request)
-			throws InvalidValueException, CannotComputeLocationException, LocationNotAuthorizedException {
+			throws InvalidValueException, CannotComputeLocationException, LocationNotAuthorizedException,
+			CouldNotSendMessageBusMessage {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("createUser() user firstName=" + newUser.getFirstName());
 		}
@@ -151,12 +154,15 @@ public class UserController {
 	 * 
 	 * @param user the user containing updated information
 	 * @return a response with its body containing the updated {@link User}
-	 * @throws UserNotFoundException when user could not be found
-	 * @throws InvalidValueException when at least one user field value is invalid
+	 * @throws UserNotFoundException         when user could not be found
+	 * @throws InvalidValueException         when at least one user field value is
+	 *                                       invalid
+	 * @throws CouldNotSendMessageBusMessage when message could not be sent to the
+	 *                                       message bus
 	 */
 	@PutMapping
 	public ResponseEntity<User> updateExistingUser(@RequestBody User user)
-			throws UserNotFoundException, InvalidValueException {
+			throws UserNotFoundException, InvalidValueException, CouldNotSendMessageBusMessage {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("updateExistingUser() user firstName=" + user.getFirstName());
 		}
@@ -169,12 +175,15 @@ public class UserController {
 	 * @param id id of the requested user
 	 * @return a response with status code {@link HttpStatus#OK} and its body
 	 *         containing the new user contents
-	 * @throws UserNotFoundException when user could not be found
-	 * @throws InvalidValueException when at least one user field value is invalid
+	 * @throws UserNotFoundException         when user could not be found
+	 * @throws InvalidValueException         when at least one user field value is
+	 *                                       invalid
+	 * @throws CouldNotSendMessageBusMessage when message could not be sent to the
+	 *                                       message bus
 	 */
 	@PatchMapping(path = "/{id}", consumes = "application/json-patch+json")
 	public ResponseEntity<User> patchExistingUser(@PathVariable final Long id, @RequestBody JsonPatch patch)
-			throws UserNotFoundException, InvalidValueException {
+			throws UserNotFoundException, InvalidValueException, CouldNotSendMessageBusMessage {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("patchExistingUser() id=" + id);
 		}
@@ -219,10 +228,13 @@ public class UserController {
 	 * 
 	 * @param id id of the user to be deleted
 	 * @return {@link HttpStatus#NO_CONTENT HttpStatus.NO_CONTENT (204)}
-	 * @throws UserNotFoundException when user could not be found
+	 * @throws UserNotFoundException         when user could not be found
+	 * @throws CouldNotSendMessageBusMessage when message could not be sent to the
+	 *                                       message bus
 	 */
 	@DeleteMapping("/{id}")
-	public ResponseEntity<User> deleteUserById(@PathVariable("id") Long id) throws UserNotFoundException {
+	public ResponseEntity<User> deleteUserById(@PathVariable("id") Long id)
+			throws UserNotFoundException, CouldNotSendMessageBusMessage {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("deleteUserById() id=" + id);
 		}
