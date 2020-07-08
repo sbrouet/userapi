@@ -20,6 +20,9 @@
 		<json-patch.version>1.12</json-patch.version>
 		<commons-lang3.version>3.10</commons-lang3.version>
 		<spring-cloud.version>Hoxton.SR6</spring-cloud.version>
+		
+		<!-- The main class to be run -->
+		<start-class>com.sbr.userapi.UserApiApplication</start-class>
 	</properties>
 
 	<dependencyManagement>
