@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.times;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -113,7 +112,7 @@ public class UserServiceTest {
 		final User userCharles = TestUtils.createTestUserCharles();
 		userCharles.setId(USER_CHARLES_ID);
 
-		List<User> allUsers = Arrays.asList(userMichael, userMarie);
+		final List<User> allUsers = List.of(userMichael, userMarie);
 
 		// Mock methods on userRepository
 		Mockito.when(userRepository.findAll()).thenReturn(allUsers);
