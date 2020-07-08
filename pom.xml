@@ -61,7 +61,7 @@
 			</exclusions> 
 		</dependency>
 		 
-		<!-- Spring messaging with spring-cloud -->
+		<!-- Spring messaging with spring-cloud-stream -->
 		<dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-stream</artifactId>

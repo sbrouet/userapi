@@ -41,7 +41,7 @@ public class UserService {
 	private LocationService locationService;
 
 	// TODO review junits
-	/** Message processor allows sending messages to the cloud messaging system */
+	/** Message processor allows sending messages to a service bus */
 	private MessageProcessor messageProcessor;
 
 	@Autowired
@@ -155,7 +155,7 @@ public class UserService {
 			LOGGER.debug("createUser() New user created : " + createdUser);
 		}
 
-		// Notify any consumer in the cloud messaging system
+		// Notify any consumer in the service bus
 		sendMessage(Message.Type.USER_CREATED, createdUser.getId());
 
 		return createdUser;
@@ -190,7 +190,7 @@ public class UserService {
 			LOGGER.debug("updateUser (" + user + ") was updated to " + updatedUser.toString());
 		}
 
-		// Notify any consumer in the cloud messaging system
+		// Notify any consumer in the service bus
 		sendMessage(Message.Type.USER_UPDATED, user.getId());
 
 		return updatedUser;
@@ -220,7 +220,7 @@ public class UserService {
 			LOGGER.debug("deleteUserById (" + id + ") user deleted");
 		}
 
-		// Notify any consumer in the cloud messaging system
+		// Notify any consumer in the service bus
 		sendMessage(Message.Type.USER_DELETED, id);
 	}
 
@@ -245,7 +245,7 @@ public class UserService {
 	}
 
 	/**
-	 * Send message to the cloud messaging system with given message information
+	 * Send message to the service bus with given message information
 	 * 
 	 * @param messageType message type see enum {@link Message.Type} for possible
 	 *                    values
@@ -258,7 +258,7 @@ public class UserService {
 	}
 
 	/**
-	 * Actually send a message to the cloud messaging system
+	 * Actually send a message to the service bus
 	 * 
 	 * @param <T> the message class
 	 * @param val message to be sent

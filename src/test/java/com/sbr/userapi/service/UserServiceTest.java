@@ -220,7 +220,7 @@ public class UserServiceTest {
 		assertThat(user.getId()).isEqualTo(USER_CHARLES_ID);
 		TestUtils.assertEqualsUserCharles(user);
 
-		// Verify the contents of message send to the cloud
+		// Verify the contents of message send to the message bus
 		final ArgumentCaptor<org.springframework.messaging.Message<Message>> argument = ArgumentCaptor
 				.forClass(org.springframework.messaging.Message.class);
 		Mockito.verify(mockMessageChannel, times(1)).send(argument.capture());
