@@ -42,7 +42,8 @@ import com.sbr.userapi.service.UserService;
  *
  */
 @RestController
-@RequestMapping("/users")
+// TODO ? add /api/ to the url
+@RequestMapping(UserControllerConstants.REST_API_ROOT_URL)
 public class UserController {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
 

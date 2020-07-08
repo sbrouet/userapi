@@ -31,15 +31,15 @@ public class TestUtils {
 
 	public static final String USER_MICHAEL_FIRST_NAME = "Michael";
 	public static final String USER_MICHAEL_EMAIL = "mfaraday@userapi.sbr";
-	private static final String USER_MICHAEL_PASSWORD = "dummyPwd1";
+	public static final String USER_MICHAEL_PASSWORD = "dummyPwd1";
 
 	public static final String USER_MARIE_FIRST_NAME = "Marie";
 	public static final String USER_MARIE_EMAIL = "mcurie@userapi.sbr";
-	private static final String USER_MARIE_PASSWORD = "dummyPwd2";
+	public static final String USER_MARIE_PASSWORD = "dummyPwd2";
 
 	public static final String USER_CHARLES_FIRST_NAME = "Charles-Edouard";
 	public static final String USER_CHARLES_EMAIL = "lecorbusier@userapi.sbr";
-	private static final String USER_CHARLES_PASSWORD = "dummyPwd3";
+	public static final String USER_CHARLES_PASSWORD = "dummyPwd3";
 
 	public static User createTestUserMichael() {
 		return new User(USER_MICHAEL_FIRST_NAME, USER_MICHAEL_EMAIL, USER_MICHAEL_PASSWORD);
