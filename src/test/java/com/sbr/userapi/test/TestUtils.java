@@ -12,6 +12,9 @@ import com.sbr.userapi.model.User;
  */
 public class TestUtils {
 
+	/** IP of the Swisscom.ch website */
+	public static final String SWISSCOM_CH_IP = "195.186.208.154";
+	
 	/**
 	 * A {@link com.sbr.userapi.model.User#getName()} which does not exist in
 	 * database
@@ -70,4 +73,5 @@ public class TestUtils {
 		assertThat(user.getEmail()).isEqualTo(USER_CHARLES_EMAIL);
 		assertThat(user.getPassword()).isEqualTo(USER_CHARLES_PASSWORD);
 	}
+
 }

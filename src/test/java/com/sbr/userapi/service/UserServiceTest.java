@@ -51,9 +51,6 @@ public class UserServiceTest {
 
 	private static final String NO_SEARCH_CRITERIA = null;
 
-	/** IP of the Swisscom.ch website */
-	private static final String SWISSCOM_CH = "195.186.208.154";
-
 	/** An IP address outside of Switzerland */
 	private static final String NOT_IN_SWITZERLAND_IP = "1.1.1.1";
 
@@ -141,7 +138,7 @@ public class UserServiceTest {
 				.thenReturn(List.of(userMarie));
 
 		// Mock the responses of locationService
-		Mockito.when(locationService.isCallerFromSwitzerland(SWISSCOM_CH)).thenReturn(true);
+		Mockito.when(locationService.isCallerFromSwitzerland(TestUtils.SWISSCOM_CH_IP)).thenReturn(true);
 		Mockito.when(locationService.isCallerFromSwitzerland(NOT_IN_SWITZERLAND_IP)).thenReturn(false);
 
 		// Mock the channel used to send messages
@@ -212,7 +209,7 @@ public class UserServiceTest {
 	public void createUser_whenValidUserAndClientRequestFromSwitzerland_userShouldBeCreated()
 			throws InvalidValueException, CannotComputeLocationException, LocationNotAuthorizedException {
 		// Create user
-		final User user = userService.createUser(TestUtils.createTestUserCharles(), SWISSCOM_CH);
+		final User user = userService.createUser(TestUtils.createTestUserCharles(), TestUtils.SWISSCOM_CH_IP);
 
 		// Verify created user
 		assertThat(user).isNotNull();

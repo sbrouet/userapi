@@ -44,14 +44,6 @@ public class UserControllerTest {
 	@MockBean
 	private UserService userService;
 
-	/**
-	 * Just ensure the test context can be loaded
-	 */
-	@Test
-	public void contextLoads() {
-
-	}
-
 	@Test
 	public void createUser_whenPostUser_thenResponseContainsUserDetails() throws Exception {
 		final User userMichael = TestUtils.createTestUserMichael();

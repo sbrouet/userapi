@@ -5,12 +5,12 @@ import java.text.MessageFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.sbr.userapi.configuration.ConfigurationBean;
 import com.sbr.userapi.exception.location.CannotComputeLocationException;
 
 // TODO junit all
@@ -31,20 +31,14 @@ public class LocationService {
 	private static final String SWITZERLAND_COUNTRY_CODE_ISO_3166_1 = "CH";
 
 	/**
-	 * The pattern for building the URLs of the country REST service used to get
-	 * country code for a given IP address
-	 */
-	private static final String IP_API_REST_URL_PATTERN = "https://ipapi.co/{0}/country";
-
-	/**
 	 * A {@link MessageFormat} used to create the location service REST URLs by IP.
 	 * It is put inside a {@ThreadLocal} object so it is thread safe, so it can be
 	 * reused safely from all threads
 	 */
-	ThreadLocal<MessageFormat> threadLocalMessageFormat = new ThreadLocal<MessageFormat>() {
+	private ThreadLocal<MessageFormat> threadLocalMessageFormat = new ThreadLocal<MessageFormat>() {
 		@Override
 		protected MessageFormat initialValue() {
-			return new MessageFormat(IP_API_REST_URL_PATTERN);
+			return new MessageFormat(configBean.getIpAPIUrlTemplate());
 		}
 	};
 
@@ -61,8 +55,11 @@ public class LocationService {
 	private RestTemplate restTemplate;
 
 	@Autowired
-	public LocationService(RestTemplateBuilder builder) {
-		this.restTemplate = builder.build();
+	private ConfigurationBean configBean;
+
+	@Autowired
+	public LocationService(RestTemplate restTemplate) {
+		this.restTemplate = restTemplate;
 	}
 
 	/**
@@ -89,12 +86,12 @@ public class LocationService {
 	 * WARNING : this method does call an external REST service (see
 	 * {@link #IP_API_REST_URL_PATTERN})
 	 * 
-	 * @param ip IP adress to get code for
+	 * @param ip IP address to get code for
 	 * @return the ISO 3166-1 Alpha 2 country code
 	 * @throws CannotComputeLocationException when the client location could not be
 	 *                                        computed by its IP
 	 */
-	private String getCountryCodeForIP(final String ip) throws CannotComputeLocationException {
+	String getCountryCodeForIP(final String ip) throws CannotComputeLocationException {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("getCountryCodeForIP(" + ip + ")");
 		}
@@ -123,7 +120,7 @@ public class LocationService {
 	 * @return a String that represents the REST Service URL, never
 	 *         <code>null</code>
 	 */
-	private String buildCountryCodeRestServiceURLForIP(final String ip) {
+	String buildCountryCodeRestServiceURLForIP(final String ip) {
 		return threadLocalMessageFormat.get().format(new Object[] { ip });
 	}
 }
