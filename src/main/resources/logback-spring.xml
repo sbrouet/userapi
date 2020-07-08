@@ -18,9 +18,4 @@
 		<appender-ref ref="CONSOLE" />
 	</logger>
 
-	<!-- TODO clean -->
-	<logger name="org.springframework.web.client" additivity="false" level="info">
-		<appender-ref ref="CONSOLE" />
-	</logger>
-
 </configuration>
