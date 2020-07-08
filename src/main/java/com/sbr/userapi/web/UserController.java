@@ -4,6 +4,8 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -42,6 +44,8 @@ import com.sbr.userapi.service.UserService;
 @RestController
 @RequestMapping("/users")
 public class UserController {
+	private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
+
 	@Autowired
 	UserService service;
 
@@ -58,6 +62,9 @@ public class UserController {
 	 */
 	@GetMapping
 	public ResponseEntity<List<User>> findAllUsers() {
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("findAllUsers() called");
+		}
 		List<User> list = service.findAll();
 		return new ResponseEntity<List<User>>(list, new HttpHeaders(), HttpStatus.OK);
 	}
@@ -72,6 +79,9 @@ public class UserController {
 	 */
 	@GetMapping("/{id}")
 	public ResponseEntity<User> getUserById(@PathVariable("id") Long id) throws UserNotFoundException {
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("getUserById() id=" + id);
+		}
 		return new ResponseEntity<User>(service.getUserById(id), new HttpHeaders(), HttpStatus.OK);
 	}
 
@@ -90,6 +100,9 @@ public class UserController {
 	@GetMapping("/find")
 	public ResponseEntity<List<User>> findUser(@RequestParam(name = "first-name", required = false) String firstName,
 			@RequestParam(name = "email", required = false) String email) throws UserNotFoundException {
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("findUser() firstName=" + firstName + ", email=" + email);
+		}
 		return new ResponseEntity<List<User>>(service.findUser(firstName, email), new HttpHeaders(), HttpStatus.OK);
 	}
 
@@ -121,6 +134,9 @@ public class UserController {
 	@PostMapping
 	public ResponseEntity<User> createUser(@RequestBody User newUser, HttpServletRequest request)
 			throws InvalidValueException, CannotComputeLocationException, LocationNotAuthorizedException {
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("createUser() user firstName=" + newUser.getFirstName());
+		}
 		// TODO ! get IP of caller !
 		// final String callerIP = request.getRemoteAddr();
 		final String callerIP = "195.186.208.154"; // wwww.swisscom.ch
@@ -140,6 +156,9 @@ public class UserController {
 	@PutMapping
 	public ResponseEntity<User> updateExistingUser(@RequestBody User user)
 			throws UserNotFoundException, InvalidValueException {
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("updateExistingUser() user firstName=" + user.getFirstName());
+		}
 		return new ResponseEntity<User>(service.updateUser(user), new HttpHeaders(), HttpStatus.OK);
 	}
 
@@ -155,6 +174,9 @@ public class UserController {
 	@PatchMapping(path = "/{id}", consumes = "application/json-patch+json")
 	public ResponseEntity<User> patchExistingUser(@PathVariable final Long id, @RequestBody JsonPatch patch)
 			throws UserNotFoundException, InvalidValueException {
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("patchExistingUser() id=" + id);
+		}
 		try {
 			User user = service.getUserById(id);
 			// Apply patch to user object
@@ -200,6 +222,9 @@ public class UserController {
 	 */
 	@DeleteMapping("/{id}")
 	public ResponseEntity<User> deleteUserById(@PathVariable("id") Long id) throws UserNotFoundException {
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("deleteUserById() id=" + id);
+		}
 		service.deleteUserById(id);
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
