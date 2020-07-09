@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+	<!-- Properties LOG_DATEFORMAT_PATTERN and LOG_LEVEL_PATTERN can be overridden to change log format -->
+	<property name="CONSOLE_LOG_PATTERN" value="%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}} ${LOG_LEVEL_PATTERN:-%5p} [%8.8t] %30.30logger{30} - %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+
+	<!-- Include base files See https://github.com/spring-projects/spring-boot/blob/master/spring-boot-project/spring-boot/src/main/resources/org/springframework/boot/logging/logback/ -->
+	<include
+		resource="org/springframework/boot/logging/logback/base.xml" />
+	<include
+		resource="org/springframework/boot/logging/logback/console-appender.xml" />
+
+	<root level="info">
+		<appender-ref ref="CONSOLE" />
+	</root>
+
+	<logger name="com.sbr" additivity="false" level="debug">
+		<appender-ref ref="CONSOLE" />
+	</logger>
+
+</configuration>
