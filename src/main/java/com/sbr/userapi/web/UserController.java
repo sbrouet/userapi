@@ -145,8 +145,8 @@ public class UserController {
 		}
 		// TODO HACK here : the IP check for local execution -> to be removed and use
 		// actual request remote address
-		// final String callerIP = request.getRemoteAddr();
-		final String callerIP = "195.186.208.154"; // wwww.swisscom.ch
+		final String callerIP = request.getRemoteAddr();
+		// final String callerIP = "195.186.208.154"; // wwww.swisscom.ch
 
 		return new ResponseEntity<User>(service.createUser(newUser, callerIP), new HttpHeaders(), HttpStatus.CREATED);
 	}
