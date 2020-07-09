@@ -29,6 +29,8 @@ public class LocationService {
 	 */
 	private static final String SWITZERLAND_COUNTRY_CODE_ISO_3166_1 = "CH";
 
+	// TODO SONAR java:S5164 "ThreadLocal" variables should be cleaned up when no
+	// longer used -> check if applicable and fix if required
 	/**
 	 * A {@link MessageFormat} used to create the location service REST URLs by IP.
 	 * It is put inside a {@ThreadLocal} object so it is thread safe, so it can be

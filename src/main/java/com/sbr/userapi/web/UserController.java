@@ -107,6 +107,8 @@ public class UserController {
 		return new ResponseEntity<List<User>>(service.findUser(firstName, email), new HttpHeaders(), HttpStatus.OK);
 	}
 
+	// TODO SONAR java:S4684 : Persistent entities should not be used as arguments
+	// of "@RequestMapping" methods -> use a DTO instead
 	/**
 	 * Create a new {@link User} with provided information from the request
 	 * body.<BR/>
@@ -149,6 +151,8 @@ public class UserController {
 		return new ResponseEntity<User>(service.createUser(newUser, callerIP), new HttpHeaders(), HttpStatus.CREATED);
 	}
 
+	// TODO SONAR java:S4684 : Persistent entities should not be used as arguments
+	// of "@RequestMapping" methods -> use a DTO instead
 	/**
 	 * Fully update an existing user : all fields are updated (except the user id).
 	 * When user is not found by its id, an exception is thrown<BR/>
