@@ -1,6 +1,7 @@
 package com.sbr.userapi.service;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -267,7 +268,7 @@ public class UserService {
 	private final void sendMessage(final Message.Type messageType, final Long userId)
 			throws CouldNotSendMessageBusMessage {
 		// TODO user version with timeout + check return value + throw exc / WARN
-		if (!messageProcessor.mainChannel().send(message(new Message(userId, messageType)),
+		if (!messageProcessor.mainChannel().send(message(new Message(new Date().getTime(), userId, messageType)),
 				SERVICE_BUS_SEND_MESSAGE_TIMEOUT_MILLIS)) {
 			throw new CouldNotSendMessageBusMessage(
 					"Failed sengind message : messageType=" + messageType + ", userId=" + userId);
@@ -282,6 +283,9 @@ public class UserService {
 	 * @return message sent
 	 */
 	private static final <T> org.springframework.messaging.Message<T> message(T val) {
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Sending message to messsage bus : " + val.toString());
+		}
 		return MessageBuilder.withPayload(val).build();
 	}
 

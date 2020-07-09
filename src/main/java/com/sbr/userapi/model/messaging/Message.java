@@ -2,8 +2,13 @@ package com.sbr.userapi.model.messaging;
 
 import java.util.Objects;
 
+/**
+ * A message sent to the message bus
+ * 
+ * @author sbrouet
+ *
+ */
 public class Message {
-	// TODO ? add timestamp
 
 	/**
 	 * Enumeration of the valid message types that describe a user operation
@@ -11,6 +16,8 @@ public class Message {
 	public static enum Type {
 		USER_CREATED, USER_DELETED, USER_UPDATED
 	}
+
+	private long timeStamp;
 
 	private Long userId;
 
@@ -27,10 +34,19 @@ public class Message {
 	 * @param userId user id
 	 * @param the    type of operation
 	 */
-	public Message(Long userId, Type type) {
+	public Message(long timeStamp, Long userId, Type type) {
 		super();
+		this.timeStamp = timeStamp;
 		this.userId = userId;
 		this.type = type;
+	}
+
+	public long getTimeStamp() {
+		return timeStamp;
+	}
+
+	public void setTimeStamp(long timeStamp) {
+		this.timeStamp = timeStamp;
 	}
 
 	public Long getUserId() {
@@ -51,7 +67,7 @@ public class Message {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(type, userId);
+		return Objects.hash(timeStamp, type, userId);
 	}
 
 	@Override
@@ -63,13 +79,14 @@ public class Message {
 			return false;
 		}
 		Message other = (Message) obj;
-		return type == other.type && Objects.equals(userId, other.userId);
+		return timeStamp == other.timeStamp && type == other.type && Objects.equals(userId, other.userId);
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("Message [userId=").append(userId).append(", type=").append(type).append("]");
+		builder.append("Message [timeStamp=").append(timeStamp).append(", userId=").append(userId).append(", type=")
+				.append(type).append("]");
 		return builder.toString();
 	}
 
