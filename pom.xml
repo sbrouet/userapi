@@ -19,6 +19,8 @@
 		<json-patch.version>1.12</json-patch.version>
 		<spring-cloud.version>Hoxton.SR6</spring-cloud.version>
 
+		<swagger.version>2.9.2</swagger.version>
+
 		<!-- The main class to be run -->
         <start-class>com.sbr.userapi.UserApiApplication</start-class>
 	</properties>
@@ -93,6 +95,19 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
+
+		<!-- Swagger -->
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger2</artifactId>
+			<version>${swagger.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>io.springfox</groupId>
+		    <artifactId>springfox-swagger-ui</artifactId>
+		    <version>${swagger.version}</version>
+		</dependency>
+		
 	</dependencies>
 
 	<build>
