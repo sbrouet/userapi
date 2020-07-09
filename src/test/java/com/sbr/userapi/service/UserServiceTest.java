@@ -40,7 +40,6 @@ import com.sbr.userapi.service.location.LocationService;
 import com.sbr.userapi.test.TestUtils;
 
 // TODO test all methods (delete, update)
-// TODO ? user other Mock framework (Powermock)
 
 // TODO ? add Mockito.verify / reset ? see https://github.com/eugenp/tutorials/blob/master/spring-boot-modules/spring-boot/src/test/java/com/baeldung/demo/boottest/EmployeeServiceImplIntegrationTest.java
 
@@ -148,10 +147,8 @@ public class UserServiceTest {
 		Mockito.when(mockMessageChannel.send(any(org.springframework.messaging.Message.class), anyLong()))
 				.thenReturn(true);
 
-		// TODO check if needed
+		// Mock findById
 		Mockito.when(userRepository.findById(userMichael.getId())).thenReturn(Optional.of(userMichael));
-
-		Mockito.when(userRepository.findById(TestUtils.UNKNOWN_USER_ID)).thenReturn(Optional.empty());
 	}
 
 	@Test

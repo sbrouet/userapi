@@ -14,7 +14,6 @@ import org.springframework.messaging.MessageChannel;
  *
  */
 public interface MessageProcessor {
-	// TODO parameterize ?
 	static final String OUTPUT_MESSAGE_CHANNEL_NAME = "com.sbr.userapi.output";
 
 	@Output(OUTPUT_MESSAGE_CHANNEL_NAME)

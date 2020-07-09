@@ -30,7 +30,6 @@ import com.sbr.userapi.service.UserService;
 import com.sbr.userapi.test.JsonUtils;
 import com.sbr.userapi.test.TestUtils;
 
-// TODO revoir nommage des IntegrationTest
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(UserController.class)
 public class UserControllerTest {
@@ -107,4 +106,6 @@ public class UserControllerTest {
 				.andExpect(jsonPath("$.[2].email", is(TestUtils.USER_CHARLES_EMAIL)))
 				.andExpect(jsonPath("$.[2].password", is(TestUtils.USER_CHARLES_PASSWORD)));
 	}
+
+	// TODO junit update patch findXXX
 }

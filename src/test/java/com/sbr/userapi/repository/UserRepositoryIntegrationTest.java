@@ -14,7 +14,8 @@ import com.sbr.userapi.model.User;
 import com.sbr.userapi.test.TestUtils;
 
 /**
- * Integration test for JPA repository {@link UserRepository}
+ * Integration test for JPA repository {@link UserRepository}. The repository
+ * operates the in-memory H2 database to search and create users
  * 
  * @author sbrouet
  *
@@ -37,8 +38,6 @@ public class UserRepositoryIntegrationTest {
 		assertThat(foundUsers).isNotNull();
 		assertThat(foundUsers.size()).isEqualTo(0);
 	}
-
-	// TODO ? test when data already present
 
 	/**
 	 * Test {@link UserRepository#save(User)}. Check that when a user is created in
@@ -70,5 +69,7 @@ public class UserRepositoryIntegrationTest {
 		assertThat(foundUsers.size()).isEqualTo(1);
 		TestUtils.assertEqualsUserMichael(foundUsers.get(0));
 	}
+
+	// TODO junit delete update
 
 }

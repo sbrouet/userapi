@@ -48,7 +48,6 @@ public class LocationService {
 	 */
 	private static String COUNTRY_UNDEFINED_RESPONSE_BODY = "Undefined";
 
-	// TODO deprecated use WebClient https://www.baeldung.com/rest-template
 	/**
 	 * Client to the external REST Webservice used to get IP location information
 	 */

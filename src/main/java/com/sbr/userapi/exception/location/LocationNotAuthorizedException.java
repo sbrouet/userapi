@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author sbrouet
  *
  */
-// TODO either publish the error in response or use code 404 instead
 @ResponseStatus(value = HttpStatus.FORBIDDEN)
 public class LocationNotAuthorizedException extends Exception {
 
