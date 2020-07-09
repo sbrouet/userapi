@@ -16,7 +16,7 @@
 
 	<properties>
 		<!-- TODO fix java version -->
-		<java.version>11</java.version>
+		<java.version>8</java.version>
 		<json-patch.version>1.12</json-patch.version>
 		<spring-cloud.version>Hoxton.SR6</spring-cloud.version>
 		
