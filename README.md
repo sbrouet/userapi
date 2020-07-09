@@ -13,6 +13,9 @@ It allows :
 Users are stored in an in-memory relational database (H2).
 Upon each event that impacts users, such as creation /full or partial update / deletion, a message is sent to a message bus. The message contains the ```id``` of impacter user and the nature of the operation (USER_CREATED, USER_DELETED, USER_UPDATED)
 
+# Important notice
+All sample URLs and commands in this documentation and the sample commands file assume that the application is running on default port 8080.
+In case you use a different port, you will have to adapt the port number accordingly in URLs and commands
 
 # Prerequisites
 
@@ -23,8 +26,8 @@ In order for the UserApiApplication to be working you need to run the following 
 
 ## Technical prerequisites
 In order to build and run this project, you need :
-  - a Java SE Development Kit (JDK) with at least version 11
-  - a working Maven installation : the ```mvn``` command is available on the command line, it uses the JDK version 11+ and your settings allow Maven to download artifacts from the Maven Central Repository
+  - a Java SE Development Kit (JDK) with at least version 8
+  - a working Maven installation : the ```mvn``` command is available on the command line, it uses the JDK version 8+ and your settings allow Maven to download artifacts from the Maven Central Repository
   - a working Docker installation being able to run the RabbitMQ docker image (details below)
   - the ```curl``` command is available on the command line
 
@@ -62,11 +65,11 @@ The project should be built successfully and unit tests run automatically and be
 This the **prefered way for demo purpose only**
 The spring-boot maven plugin allows to run Spring Boot applications by providing all the required dependencies.
 In order to run the application, please execute the following command from the root of the project, where the ```pom.xml``` file is located :
-**```mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8085```**
+**```mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8080```**
 
-You can customize the server port the application will listen requests to (here 8085 in the example), please choose a free port number
+You can customize the server port the application will listen requests to (here 8080 in the example), please choose a free port number
 You can customize the log level of the Spring / Spring Boot framework classes by adding the logging.level argument as shown below
-**```mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=8085 --logging.level.org.springframework=DEBUG"```**
+**```mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=8080 --logging.level.org.springframework=DEBUG"```**
 
 ## Running as a standalone java application
 You can run the application by producing the deliverable of the application as a jar file and then execute the main class from the jar file
@@ -80,8 +83,12 @@ Run the following commands :
 **```ls target/userapi-0.0.1-SNAPSHOT.jar```**
   * file should exist
 
-**```java -Dserver.port=8085 -jar target/userapi-0.0.1-SNAPSHOT.jar```**
+**```java -Dserver.port=8080 -jar target/userapi-0.0.1-SNAPSHOT.jar```**
 You can customize the server port the application by changing the server.port value in the command
+
+## Running from your favotrite IDE
+Run class "com.sbr.userapi.UserApiApplication" as a java main class
+Add run option if you want to user a different port that default 8080.
 
 ## How to check the application has started correctly
 
@@ -89,7 +96,7 @@ You can customize the server port the application by changing the server.port va
 At startup the application outputs logs on the console
 The log should display the server port used :
 ```
-2020-07-08 21:13:04.161  INFO [    main]    o.s.b.w.e.t.TomcatWebServer - Tomcat initialized with port(s): 8085 (http)
+2020-07-08 21:13:04.161  INFO [    main]    o.s.b.w.e.t.TomcatWebServer - Tomcat initialized with port(s): 8080 (http)
 ```
 
 and end with lines similar to these:
@@ -99,9 +106,9 @@ and end with lines similar to these:
 ```
 
 ### Then run a first command on the application API
-Assuming the application is running on port **8085**, run command :
+Assuming the application is running on port **8080**, run command :
 
-```curl http://localhost:8085/users```
+```curl http://localhost:8080/users```
 
 Output should look like :
 ```
@@ -111,12 +118,14 @@ Output should look like :
 **Great ! You just was the list of test users which are automatically created by the application on sartup !
 The application is responding correctly and ready to be used !**
 
+# API documentation
+The API documentation is generated using Sagger and is served by the application at this url (adapt port number):
+http://localhost:8080/swagger-ui.html
+
 # How to use the application
 
-# TODO curl + h2 console
-
-The base URL for accessing the application API is (assuming you run the application on port 8085)
-```curl http://localhost:8085/users```
+The base URL for accessing the application API is (assuming you run the application on port 8080)
+```curl http://localhost:8080/users```
 This commands requests for the list of all users currently present in the database
 
 **Please find sample commands that show how to call each operation in the ```sample-commands.txt``` file at the root of project files**
@@ -125,12 +134,14 @@ Each command has a description and an sample of the expected output.
 ##  Design choices and limitations
 Here is an explanation of some design choices.
 
-# TODO spring boot (easy, well adapted to standalone applications), spring cloud (many Kafka etc)
-
+* Libraries
+  * Spring Boot : well adapted to standalone applications and good support for REST / RESTFul applications
+  * Spring Cloud framework which is compatible with many systems : Apache Kafka, Amazon Kinesis, Google PusbSub and others 
 * In memory H2 database
   * Data is persisted into an in memory database, which is launched when the application starts and is shutdown when application stops. All data is lost at shutdown.
   * This allows running the application without having to rely on an external database and still having all the JPA / Hibernate persistence layers working as on any database, which is **suitable for a demo usage only**
   * Note : **an actual external database can be used*** simply by changing the configuration in the ```src/main/resources/application.properties``` file (see the ```spring.datasource.*``` properties)
+
 * Logging to console only
   * This choice was done purposely with containerization in mind. Containers orchestrators such as Kubernetes are better suited for streaming logs from the application standard output
 
@@ -143,10 +154,11 @@ Many enhancements this demo application are possible
 - Ability to GET multiple users at once by id (Example: /users/{id1},{id2})
 
 ## Technical enhancements
-- **TODO** Unit tests code coverage : currently coverage is **TODO**
-- Error management : **TODO a voir** have more details about the errors in the API responses
+- Unit tests code coverage : currently coverage is **TODO**
+- RESTFul API : make the API RESTFUl using String HATEOAS project (https://spring.io/projects/spring-hateoas)
+- Error management : **TODO a voir** have more details about the errors in the API responses (currently messages in thrown exceptions are not used)
 - Run into a container (Docker / Kubernetes)
-- Message bus : application could connect to many other systems than RabbitMQ. The UserApiApplication usesn the Spring Cloud framework which is compatible with many systems : Apache Kafka, Amazon Kinesis, Google PusbSub and others. Some configuration changes would allow such change without changing the application code.
+- Message bus : application could connect to many other systems than RabbitMQ such as Kafka since it uses the Spring Cloud framework which is compatible with many systems. Some configuration changes would allow such change without changing the application code.
 See documentation at https://spring.io/projects/spring-cloud-stream
 - Securing sensitive data : currently the API allows requesting all the users information, including their password. It should allow to request only an authorized subset of fields and hide sensitive data
 - Configure credentials : the application uses default login/passwords for connecting to the message bus (RabbitMQ), this shoud be configurable
