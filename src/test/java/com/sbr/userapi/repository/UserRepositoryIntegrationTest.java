@@ -46,13 +46,13 @@ public class UserRepositoryIntegrationTest {
 	 */
 	@Test
 	public void save_whenSaveUserThenItCanBeFoundInDb() {
-		final User user = TestUtils.createTestUserMichael();
+		final User user = TestUtils.createTestUserMichaelNoId();
 		userRepository.save(user);
 
 		final List<User> foundUsers = userRepository.findAll();
 		assertThat(foundUsers).isNotNull();
 		assertThat(foundUsers.size()).isEqualTo(1);
-		TestUtils.assertEqualsUserMichael(foundUsers.get(0));
+		TestUtils.assertEqualsUserMichaelNoId(foundUsers.get(0));
 	}
 
 	/**
@@ -61,13 +61,13 @@ public class UserRepositoryIntegrationTest {
 	 */
 	@Test
 	public void findByFirstName_whenUserInDbItCanBeFound() {
-		final User user = TestUtils.createTestUserMichael();
+		final User user = TestUtils.createTestUserMichaelNoId();
 		userRepository.save(user);
 
 		final List<User> foundUsers = userRepository.findByFirstName(TestUtils.USER_MICHAEL_FIRST_NAME);
 		assertThat(foundUsers).isNotNull();
 		assertThat(foundUsers.size()).isEqualTo(1);
-		TestUtils.assertEqualsUserMichael(foundUsers.get(0));
+		TestUtils.assertEqualsUserMichaelNoId(foundUsers.get(0));
 	}
 
 }

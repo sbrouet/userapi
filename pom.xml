@@ -18,7 +18,8 @@
 		<java.version>14</java.version>
 		<json-patch.version>1.12</json-patch.version>
 		<spring-cloud.version>Hoxton.SR6</spring-cloud.version>
-
+		<org.mapstruct.version>1.4.0.Beta3</org.mapstruct.version>
+		<org.projectlombok.version>1.18.12</org.projectlombok.version>
 		<swagger.version>2.9.2</swagger.version>
 
 		<!-- The main class to be run -->
@@ -84,6 +85,29 @@
 		</dependency>
 
 		<!-- Other 3rd party libraries -->
+		
+		<!--
+			https://mapstruct.org/
+			MapStruct is a code generator that greatly simplifies the implementation of mappings 
+			between Java bean types based on a convention over configuration approach
+		-->
+		<dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${org.mapstruct.version}</version>
+        </dependency>
+		
+		<!--
+			https://projectlombok.org/
+			Never write another getter or equals method again, with one annotation your class has a fully featured builder, 
+			Automate your logging variables, and much more. 
+		-->
+		<dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${org.projectlombok.version}</version>
+        </dependency>
+		
 		<!-- https://mvnrepository.com/artifact/com.github.java-json-tools/json-patch -->
 		<dependency>
 			<groupId>com.github.java-json-tools</groupId>
@@ -115,6 +139,31 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
+					<!--
+						Enable annotation processors for libraries MapStruct and Lombok
+						so updated classes can be generated at compile time
+					-->
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.mapstruct</groupId>
+							<artifactId>mapstruct-processor</artifactId>
+							<version>${org.mapstruct.version}</version>
+						</path>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>${org.projectlombok.version}</version>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

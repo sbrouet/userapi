@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
+import com.sbr.userapi.dto.UserDTO;
 import com.sbr.userapi.exception.CouldNotSendMessageBusMessage;
 import com.sbr.userapi.exception.InvalidValueException;
 import com.sbr.userapi.exception.UserNotFoundException;
@@ -33,6 +34,7 @@ import com.sbr.userapi.exception.location.CannotComputeLocationException;
 import com.sbr.userapi.exception.location.LocationNotAuthorizedException;
 import com.sbr.userapi.model.User;
 import com.sbr.userapi.service.UserService;
+import com.sbr.userapi.web.utils.ControllerUtils;
 
 /**
  * A REST controller which is able to receive client requests through the HTTP
@@ -62,28 +64,30 @@ public class UserController {
 	 * @return an HTTP response with a status, the list of users may be empty
 	 */
 	@GetMapping
-	public ResponseEntity<List<User>> findAllUsers() {
+	public ResponseEntity<List<UserDTO>> findAllUsers() {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("findAllUsers() called");
 		}
-		List<User> list = service.findAll();
-		return new ResponseEntity<List<User>>(list, new HttpHeaders(), HttpStatus.OK);
+		final List<User> usersList = service.findAll();
+		return new ResponseEntity<List<UserDTO>>(ControllerUtils.convertUserListToUserDTOList(usersList),
+				new HttpHeaders(), HttpStatus.OK);
 	}
 
 	/**
 	 * Get user from database by its {@link User#getId()}. When user is not found,
-	 * an exception is thrown
+	 * an exception is thrown which is mapped to {@link HttpStatus#NOT_FOUND}
 	 * 
 	 * @param id id of the requested user
 	 * @return a response with its body containing the found user
 	 * @throws UserNotFoundException when user could not be found
 	 */
 	@GetMapping("/{id}")
-	public ResponseEntity<User> getUserById(@PathVariable("id") Long id) throws UserNotFoundException {
+	public ResponseEntity<UserDTO> getUserById(@PathVariable("id") Long id) throws UserNotFoundException {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("getUserById() id=" + id);
 		}
-		return new ResponseEntity<User>(service.getUserById(id), new HttpHeaders(), HttpStatus.OK);
+		return new ResponseEntity<UserDTO>(ControllerUtils.convertUserEntityToDTO(service.getUserById(id)),
+				new HttpHeaders(), HttpStatus.OK);
 	}
 
 	/**
@@ -98,17 +102,19 @@ public class UserController {
 	 * @return a response with its body containing the list of found users, if any,
 	 *         or an empty list
 	 */
-	@GetMapping("/find")
-	public ResponseEntity<List<User>> findUser(@RequestParam(name = "first-name", required = false) String firstName,
-			@RequestParam(name = "email", required = false) String email) throws UserNotFoundException {
+	@GetMapping(UserControllerConstants.PATH_FIND)
+	public ResponseEntity<List<UserDTO>> findUser(
+			@RequestParam(name = UserControllerConstants.PARAM_FIRST_NAME, required = false) String firstName,
+			@RequestParam(name = UserControllerConstants.PARAM_EMAIL, required = false) String email)
+			throws UserNotFoundException {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("findUser() firstName=" + firstName + ", email=" + email);
 		}
-		return new ResponseEntity<List<User>>(service.findUser(firstName, email), new HttpHeaders(), HttpStatus.OK);
+		return new ResponseEntity<List<UserDTO>>(
+				ControllerUtils.convertUserListToUserDTOList(service.findUser(firstName, email)), new HttpHeaders(),
+				HttpStatus.OK);
 	}
 
-	// TODO SONAR java:S4684 : Persistent entities should not be used as arguments
-	// of "@RequestMapping" methods -> use a DTO instead
 	/**
 	 * Create a new {@link User} with provided information from the request
 	 * body.<BR/>
@@ -137,7 +143,7 @@ public class UserController {
 	 *                                        message bus
 	 */
 	@PostMapping
-	public ResponseEntity<User> createUser(@RequestBody User newUser, HttpServletRequest request)
+	public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO newUser, HttpServletRequest request)
 			throws InvalidValueException, CannotComputeLocationException, LocationNotAuthorizedException,
 			CouldNotSendMessageBusMessage {
 		if (LOGGER.isDebugEnabled()) {
@@ -148,17 +154,18 @@ public class UserController {
 		final String callerIP = request.getRemoteAddr();
 		// final String callerIP = "195.186.208.154"; // wwww.swisscom.ch
 
-		return new ResponseEntity<User>(service.createUser(newUser, callerIP), new HttpHeaders(), HttpStatus.CREATED);
+		return new ResponseEntity<UserDTO>(
+				ControllerUtils.convertUserEntityToDTO(
+						service.createUser(ControllerUtils.convertUserDTOToEntity(newUser), callerIP)),
+				new HttpHeaders(), HttpStatus.CREATED);
 	}
 
-	// TODO SONAR java:S4684 : Persistent entities should not be used as arguments
-	// of "@RequestMapping" methods -> use a DTO instead
 	/**
 	 * Fully update an existing user : all fields are updated (except the user id).
 	 * When user is not found by its id, an exception is thrown<BR/>
 	 * 
 	 * @param user the user containing updated information
-	 * @return a response with its body containing the updated {@link User}
+	 * @return a response with its body containing the updated user data
 	 * @throws UserNotFoundException         when user could not be found
 	 * @throws InvalidValueException         when at least one user field value is
 	 *                                       invalid
@@ -166,12 +173,14 @@ public class UserController {
 	 *                                       message bus
 	 */
 	@PutMapping
-	public ResponseEntity<User> updateExistingUser(@RequestBody User user)
+	public ResponseEntity<UserDTO> updateExistingUser(@RequestBody UserDTO userDTO)
 			throws UserNotFoundException, InvalidValueException, CouldNotSendMessageBusMessage {
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("updateExistingUser() user firstName=" + user.getFirstName());
+			LOGGER.debug("updateExistingUser() user firstName=" + userDTO.getFirstName());
 		}
-		return new ResponseEntity<User>(service.updateUser(user), new HttpHeaders(), HttpStatus.OK);
+		final User updatedUser = service.updateUser(ControllerUtils.convertUserDTOToEntity(userDTO));
+		return new ResponseEntity<UserDTO>(ControllerUtils.convertUserEntityToDTO(updatedUser), new HttpHeaders(),
+				HttpStatus.OK);
 	}
 
 	/**
@@ -187,18 +196,18 @@ public class UserController {
 	 *                                       message bus
 	 */
 	@PatchMapping(path = "/{id}", consumes = "application/json-patch+json")
-	public ResponseEntity<User> patchExistingUser(@PathVariable final Long id, @RequestBody JsonPatch patch)
+	public ResponseEntity<UserDTO> patchExistingUser(@PathVariable final Long id, @RequestBody JsonPatch patch)
 			throws UserNotFoundException, InvalidValueException, CouldNotSendMessageBusMessage {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("patchExistingUser() id=" + id);
 		}
 		try {
-			User user = service.getUserById(id);
+			final User user = service.getUserById(id);
 			// Apply patch to user object
-			User userPatched = applyPatchToUser(patch, user);
+			final User userPatched = applyPatchToUser(patch, user);
 			// Actual update of user via service
-			service.updateUser(userPatched);
-			return ResponseEntity.ok(userPatched);
+			final User userUpdated = service.updateUser(userPatched);
+			return ResponseEntity.ok(ControllerUtils.convertUserEntityToDTO(userUpdated));
 		} catch (JsonPatchException | JsonProcessingException e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		} catch (UserNotFoundException e) {
@@ -238,7 +247,7 @@ public class UserController {
 	 *                                       message bus
 	 */
 	@DeleteMapping("/{id}")
-	public ResponseEntity<User> deleteUserById(@PathVariable("id") Long id)
+	public ResponseEntity<Void> deleteUserById(@PathVariable("id") Long id)
 			throws UserNotFoundException, CouldNotSendMessageBusMessage {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("deleteUserById() id=" + id);

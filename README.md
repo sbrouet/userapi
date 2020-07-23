@@ -21,7 +21,7 @@ In case you use a different port, you will have to adapt the port number accordi
 
 # Prerequisites
 
-## Prerequisites for runnning the application
+## Prerequisites for running the application
 In order for the UserApiApplication to be working you need to run the following components in that order (technical details follow)
 - running a RabbitMQ instance
 - running the UserApiApplication

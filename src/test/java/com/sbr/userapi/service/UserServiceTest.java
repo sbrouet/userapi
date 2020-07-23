@@ -42,10 +42,6 @@ import com.sbr.userapi.test.TestUtils;
 @ExtendWith(SpringExtension.class)
 public class UserServiceTest {
 
-	private static final Long USER_MICHAEL_ID = 1L;
-	private static final Long USER_MARIE_ID = 2L;
-	private static final Long USER_CHARLES_ID = 3L;
-
 	private static final String NO_SEARCH_CRITERIA = null;
 
 	/** An IP address outside of Switzerland */
@@ -99,14 +95,9 @@ public class UserServiceTest {
 		// Create test users. Force Id as the database calls are mocked so the id will
 		// not be automatically set (the objects returned by the repository are the ones
 		// prepared here instead of the actual ORM system returned ones)
-		final User userMichael = TestUtils.createTestUserMichael();
-		userMichael.setId(USER_MICHAEL_ID);
-
-		final User userMarie = TestUtils.createTestUserMarie();
-		userMarie.setId(USER_MARIE_ID);
-
-		final User userCharles = TestUtils.createTestUserCharles();
-		userCharles.setId(USER_CHARLES_ID);
+		final User userMichael = TestUtils.createTestUserMichaelWithId();
+		final User userMarie = TestUtils.createTestUserMarieWithId();
+		final User userCharles = TestUtils.createTestUserCharlesWithId();
 
 		final List<User> allUsers = List.of(userMichael, userMarie);
 
@@ -154,7 +145,7 @@ public class UserServiceTest {
 
 	@Test
 	public void getUserById_whenValidIdThenUserShouldBeFound() throws UserNotFoundException {
-		final User found = userService.getUserById(USER_MICHAEL_ID);
+		final User found = userService.getUserById(TestUtils.USER_MICHAEL_ID);
 		assertThat(found.getFirstName()).isEqualTo(TestUtils.USER_MICHAEL_FIRST_NAME);
 	}
 
@@ -169,8 +160,8 @@ public class UserServiceTest {
 		assertThat(found.size()).isEqualTo(1);
 
 		final User michael = found.get(0);
-		assertThat(michael.getId()).isEqualTo(USER_MICHAEL_ID);
-		TestUtils.assertEqualsUserMichael(michael);
+		assertThat(michael.getId()).isEqualTo(TestUtils.USER_MICHAEL_ID);
+		TestUtils.assertEqualsUserMichaelNoId(michael);
 	}
 
 	@Test
@@ -185,8 +176,8 @@ public class UserServiceTest {
 		assertThat(found.size()).isEqualTo(1);
 
 		final User foundUser = found.get(0);
-		assertThat(foundUser.getId()).isEqualTo(USER_MARIE_ID);
-		TestUtils.assertEqualsUserMarie(foundUser);
+		assertThat(foundUser.getId()).isEqualTo(TestUtils.USER_MARIE_ID);
+		TestUtils.assertEqualsUserMarieId(foundUser);
 	}
 
 	@Test
@@ -220,11 +211,11 @@ public class UserServiceTest {
 			throws InvalidValueException, CannotComputeLocationException, LocationNotAuthorizedException,
 			CouldNotSendMessageBusMessage {
 		// Create user
-		final User user = userService.createUser(TestUtils.createTestUserCharles(), TestUtils.SWISSCOM_CH_IP);
+		final User user = userService.createUser(TestUtils.createTestUserCharlesNoId(), TestUtils.SWISSCOM_CH_IP);
 
 		// Verify created user
 		assertThat(user).isNotNull();
-		assertThat(user.getId()).isEqualTo(USER_CHARLES_ID);
+		assertThat(user.getId()).isEqualTo(TestUtils.USER_CHARLES_ID);
 		TestUtils.assertEqualsUserCharles(user);
 
 		// Verify the contents of message send to the message bus
@@ -243,7 +234,7 @@ public class UserServiceTest {
 	public void createUser_whenValidUserAndClientRequestNotFromSwitzerland_anExceptionShouldBeRaised()
 			throws InvalidValueException, CannotComputeLocationException, LocationNotAuthorizedException {
 		assertThrows(LocationNotAuthorizedException.class,
-				() -> userService.createUser(TestUtils.createTestUserCharles(), NOT_IN_SWITZERLAND_IP));
+				() -> userService.createUser(TestUtils.createTestUserCharlesNoId(), NOT_IN_SWITZERLAND_IP));
 		assertNoMessageWasSentToBus();
 	}
 
