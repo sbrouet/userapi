@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -29,6 +30,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
+import com.sbr.userapi.dto.UserDTO;
 import com.sbr.userapi.exception.UserNotFoundException;
 import com.sbr.userapi.model.User;
 import com.sbr.userapi.service.UserService;
@@ -233,4 +235,39 @@ public class UserControllerTest {
 				.andDo(print()).andExpect(status().isNotFound()).andExpect(content().string(""));
 	}
 
+	/**
+	 * Test method {@link UserController#updateExistingUser(Long, UserDTO)}. All
+	 * updated fields should be present also in the response with updated value
+	 * 
+	 * @throws Exception not expected
+	 */
+	@Test
+	public void updateExistingUser_whenUserExists_thenItShouldBeUpdatedAndResponseStatusOK() throws Exception {
+		final String newFirstName = "newFirstName";
+		final String newEmail = "new@email.com";
+		final String newPassword = "new password";
+
+		final User userMichaelAfterUpdate = TestUtils.createTestUserMichaelWithId();
+		userMichaelAfterUpdate.setFirstName(newFirstName);
+		userMichaelAfterUpdate.setEmail(newEmail);
+		userMichaelAfterUpdate.setPassword(newPassword);
+
+		// User DTO with values changed
+		final UserDTO userMichaelDTO = TestUtils.createTestUserDTOMichaelWithId();
+		userMichaelDTO.setFirstName(userMichaelAfterUpdate.getFirstName());
+		userMichaelDTO.setEmail(userMichaelAfterUpdate.getEmail());
+		userMichaelDTO.setPassword(userMichaelAfterUpdate.getPassword());
+
+		// Mock repository response
+		given(userService.updateUser(userMichaelAfterUpdate)).willReturn(userMichaelAfterUpdate);
+
+		final ResultActions resultActions = mvc
+				.perform(put(UserControllerConstants.REST_API_ROOT_URL + "/" + userMichaelDTO.getId())
+						.contentType(MediaType.APPLICATION_JSON).content(JsonUtils.toJson(userMichaelDTO)))
+				.andDo(print()).andExpect(status().isOk());
+
+		TestUtils.andExpectAllFieldsInJsonObjectIsUser(resultActions, userMichaelDTO.getId(), newFirstName, newEmail,
+				newPassword);
+		verify(userService, VerificationModeFactory.times(1)).updateUser(Mockito.any());
+	}
 }

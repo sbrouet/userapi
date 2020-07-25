@@ -1,7 +1,5 @@
 package com.sbr.userapi.model;
 
-import java.util.Objects;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -93,11 +91,36 @@ public class User {
 		return builder.toString();
 	}
 
+	/**
+	 * This implementation both complies with the Java {@link Object#hashCode()}
+	 * contract and the requirement for Hibernate that {@link Object#equals(Object)}
+	 * and {@link Object#hashCode()} methods must behave consistently across all
+	 * entity state transitions.<BR/>
+	 * WARNING : do <strong>NOT use very large {@link java.util.Set Sets} of
+	 * users</strong> as they all will end up into the same bucket which will lead
+	 * to poor performance
+	 * 
+	 * @return {@inheritDoc}
+	 */
 	@Override
 	public int hashCode() {
-		return Objects.hash(email, firstName, id, password);
+		return 13;
 	}
 
+	/**
+	 * This implementation both complies with the Java {@link Object#equals(Object)}
+	 * contract and the Hibernate entities equality semantics (when two entities
+	 * represent the same database row, they are equal, otherwise they are not). It
+	 * also complies with the requirement for Hibernate that
+	 * {@link Object#equals(Object)} and {@link Object#hashCode()} methods must
+	 * behave consistently across all entity state transitions.
+	 * 
+	 * @see https://access.redhat.com/documentation/en-us/jboss_enterprise_application_platform/4.3/html/hibernate_reference_guide/persistent_classes-implementing_equals_and_hashcode
+	 * @see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+	 * @param obj {@inheritDoc}
+	 * @return {@inheritDoc}
+	 * 
+	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
@@ -106,9 +129,17 @@ public class User {
 		if (!(obj instanceof User)) {
 			return false;
 		}
+
 		User other = (User) obj;
-		return Objects.equals(email, other.email) && Objects.equals(firstName, other.firstName)
-				&& Objects.equals(id, other.id) && Objects.equals(password, other.password);
+
+		// A transient entity cannot be equal to any other entity
+		if (null == id) {
+			return false;
+		}
+
+		// Entities are equal when they both represent same row in database, here having
+		// same generated id
+		return id.equals(other.getId());
 	}
 
 }

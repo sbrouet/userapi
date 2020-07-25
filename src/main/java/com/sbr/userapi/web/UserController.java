@@ -164,6 +164,7 @@ public class UserController {
 	 * Fully update an existing user : all fields are updated (except the user id).
 	 * When user is not found by its id, an exception is thrown<BR/>
 	 * 
+	 * @param id   id of the user to be updated
 	 * @param user the user containing updated information
 	 * @return a response with its body containing the updated user data
 	 * @throws UserNotFoundException         when user could not be found
@@ -172,13 +173,18 @@ public class UserController {
 	 * @throws CouldNotSendMessageBusMessage when message could not be sent to the
 	 *                                       message bus
 	 */
-	@PutMapping
-	public ResponseEntity<UserDTO> updateExistingUser(@RequestBody UserDTO userDTO)
+	@PutMapping(path = "/{id}")
+	public ResponseEntity<UserDTO> updateExistingUser(@PathVariable final Long id, @RequestBody UserDTO userDTO)
 			throws UserNotFoundException, InvalidValueException, CouldNotSendMessageBusMessage {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("updateExistingUser() user firstName=" + userDTO.getFirstName());
 		}
-		final User updatedUser = service.updateUser(ControllerUtils.convertUserDTOToEntity(userDTO));
+		final User userEntity = ControllerUtils.convertUserDTOToEntity(userDTO);
+		// Ensure id in entity is consistent with the request
+		// parameter (avoid injection of a value in the id via the request body)
+		userEntity.setId(id);
+
+		final User updatedUser = service.updateUser(userEntity);
 		return new ResponseEntity<UserDTO>(ControllerUtils.convertUserEntityToDTO(updatedUser), new HttpHeaders(),
 				HttpStatus.OK);
 	}
@@ -186,7 +192,7 @@ public class UserController {
 	/**
 	 * Partially update a {@link User} using the HTTP PATCH method
 	 * 
-	 * @param id id of the requested user
+	 * @param id id of the user to be patched
 	 * @return a response with status code {@link HttpStatus#OK} and its body
 	 *         containing the new user contents
 	 * @throws UserNotFoundException         when user could not be found
@@ -205,6 +211,9 @@ public class UserController {
 			final User user = service.getUserById(id);
 			// Apply patch to user object
 			final User userPatched = applyPatchToUser(patch, user);
+			// Ensure id in entity is consistent with the request
+			// parameter (avoid injection of a value in the id via the request body)
+			userPatched.setId(id);
 			// Actual update of user via service
 			final User userUpdated = service.updateUser(userPatched);
 			return ResponseEntity.ok(ControllerUtils.convertUserEntityToDTO(userUpdated));

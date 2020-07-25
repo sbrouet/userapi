@@ -39,7 +39,7 @@ curl -X POST http://localhost:8080/users -H 'Content-type:application/json' -d '
 
 
 # Fully update an existing user
-curl -X PUT http://localhost:8080/users -H 'Content-type:application/json' -d '{"id":2,"firstName":"Albert","email":"albert_einstein@userapi.sbr","password":"newPassword"}'
+curl -X PUT http://localhost:8080/users/2 -H 'Content-type:application/json' -d '{"firstName":"Albert","email":"albert_einstein@userapi.sbr","password":"newPassword"}'
 # {"id":2,"firstName":"Albert","email":"albert_einstein@userapi.sbr","password":"newPassword"}
 # Check : get it back again
 curl http://localhost:8080/users/2

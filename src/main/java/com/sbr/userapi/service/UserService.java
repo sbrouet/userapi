@@ -98,8 +98,8 @@ public class UserService {
 	 * 
 	 * @param firstName first name to search for. <code>null</code> means no
 	 *                  criterion on first name field
-	 * @arapm email email to search for. <code>null</code> means no criterion on
-	 *        email field
+	 * @param email     email to search for. <code>null</code> means no criterion on
+	 *                  email field
 	 * @return list of users, may be empty but never <code>null</code>
 	 */
 	public List<User> findUser(final String firstName, final String email) {
