@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.sbr.userapi.exception.CouldNotSendMessageBusMessage;
 import com.sbr.userapi.exception.InvalidValueException;
@@ -57,6 +58,7 @@ public class UserService {
 	 * 
 	 * @return list of users, may be empty but never <code>null</code>
 	 */
+	@Transactional(readOnly = true)
 	public List<User> findAll() {
 		final List<User> users = repository.findAll();
 		if (LOGGER.isDebugEnabled()) {
@@ -73,6 +75,7 @@ public class UserService {
 	 * @return a {@link User}, never <code>null</code>
 	 * @throws UserNotFoundException when user could not be found
 	 */
+	@Transactional(readOnly = true)
 	public User getUserById(final Long id) throws UserNotFoundException {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("getUserById (" + id + ")");
@@ -102,6 +105,7 @@ public class UserService {
 	 *                  email field
 	 * @return list of users, may be empty but never <code>null</code>
 	 */
+	@Transactional(readOnly = true)
 	public List<User> findUser(final String firstName, final String email) {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("findUser (" + firstName + ", " + email + ")");
@@ -134,6 +138,7 @@ public class UserService {
 	 * @throws CouldNotSendMessageBusMessage  when message could not be sent to the
 	 *                                        message bus
 	 */
+	@Transactional
 	public User createUser(final User newUser, final String clientRemoteAddrID) throws InvalidValueException,
 			CannotComputeLocationException, LocationNotAuthorizedException, CouldNotSendMessageBusMessage {
 		if (LOGGER.isDebugEnabled()) {
@@ -176,6 +181,7 @@ public class UserService {
 	 * @throws CouldNotSendMessageBusMessage when message could not be sent to the
 	 *                                       message bus
 	 */
+	@Transactional
 	public User updateUser(final User user)
 			throws UserNotFoundException, InvalidValueException, CouldNotSendMessageBusMessage {
 		if (LOGGER.isDebugEnabled()) {
@@ -211,6 +217,7 @@ public class UserService {
 	 * @throws CouldNotSendMessageBusMessage when message could not be sent to the
 	 *                                       message bus
 	 */
+	@Transactional
 	public void deleteUserById(final Long id) throws UserNotFoundException, CouldNotSendMessageBusMessage {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("deleteUserById (" + id + ")");
