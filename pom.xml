@@ -15,7 +15,7 @@
 	<description>Demo project</description>
 
 	<properties>
-		<java.version>8</java.version>
+		<java.version>14</java.version>
 		<json-patch.version>1.12</json-patch.version>
 		<spring-cloud.version>Hoxton.SR6</spring-cloud.version>
 
