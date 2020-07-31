@@ -1,6 +1,7 @@
 package com.sbr.userapi.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -18,7 +19,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -34,17 +34,28 @@ import com.sbr.userapi.dto.UserDTO;
 import com.sbr.userapi.exception.UserNotFoundException;
 import com.sbr.userapi.model.User;
 import com.sbr.userapi.service.UserService;
+import com.sbr.userapi.service.time.TimeService;
 import com.sbr.userapi.test.JsonUtils;
 import com.sbr.userapi.test.TestUtils;
 
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(UserController.class)
 public class UserControllerTest {
+
+	private static final String EXCEPTION_MESSAGE_NO_USER_FOUND_ID_1 = "No user found with id [1]";
+
+	private static final long EXCEPTION_TIMESTAMP = 1596256892335L;
+
+	private static final String EXCEPTION_URL_USER_NOT_FOUND_ID_1 = "uri=/users/1";
+
 	@Autowired
 	private MockMvc mvc;
 
 	@MockBean
 	private UserService userService;
+
+	@MockBean
+	private TimeService timeService;
 
 	/**
 	 * Test method {@link UserController#getUserById(Long)}. User should be returned
@@ -54,7 +65,7 @@ public class UserControllerTest {
 	 * @throws Exception not expected
 	 */
 	@Test
-	public void getUserByIdWithDTO_responseContainsUserDetails() throws Exception {
+	public void getUserById_responseContainsUserDetails() throws Exception {
 		final User userMichael = TestUtils.createTestUserMichaelWithId();
 
 		// Mock repository response
@@ -69,17 +80,38 @@ public class UserControllerTest {
 	}
 
 	@Test
+	public void getUserById_whenUserDoesNotExist_thenResponseIsNotFoundAndHasExceptionDetailsInBody() throws Exception {
+		given(timeService.getCurrentDateTimeTimestamp()).willReturn(EXCEPTION_TIMESTAMP);
+
+		// Mock repository response : throw exc
+		doThrow(new UserNotFoundException(EXCEPTION_MESSAGE_NO_USER_FOUND_ID_1)).when(userService).getUserById(1L);
+
+		final ResultActions resultActions = mvc
+				.perform(get(UserControllerConstants.REST_API_ROOT_URL + "/1").accept(MediaType.APPLICATION_JSON))
+				.andDo(print()).andExpect(status().isNotFound())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE));
+
+		// Check error details are present in response body
+		TestUtils.andExpectJsonObjectErrorDetails(resultActions, EXCEPTION_TIMESTAMP,
+				EXCEPTION_MESSAGE_NO_USER_FOUND_ID_1, EXCEPTION_URL_USER_NOT_FOUND_ID_1);
+
+		verify(userService, VerificationModeFactory.times(1)).getUserById(1L);
+	}
+
+	@Test
 	public void createUser_whenPostUser_thenResponseContainsUserDetails() throws Exception {
 		final User userMichael = TestUtils.createTestUserMichaelWithId();
 
 		// Mock repository response
-		given(userService.createUser(Mockito.any(), Mockito.any())).willReturn(userMichael);
+		given(userService.createUser(any(), any())).willReturn(userMichael);
 
-		final ResultActions resultActions = mvc.perform(post(UserControllerConstants.REST_API_ROOT_URL)
-				.contentType(MediaType.APPLICATION_JSON).content(JsonUtils.toJson(userMichael))).andDo(print())
-				.andExpect(status().isCreated());
+		final ResultActions resultActions = mvc
+				.perform(post(UserControllerConstants.REST_API_ROOT_URL).contentType(MediaType.APPLICATION_JSON)
+						.content(JsonUtils.toJson(userMichael)))
+				.andDo(print()).andExpect(status().isCreated())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE));
 		TestUtils.andExpectAllFieldsInJsonObjectIsUserMichael(resultActions);
-		verify(userService, VerificationModeFactory.times(1)).createUser(Mockito.any(), Mockito.any());
+		verify(userService, VerificationModeFactory.times(1)).createUser(any(), any());
 	}
 
 	@Test
@@ -91,7 +123,8 @@ public class UserControllerTest {
 
 		final MvcResult mvcResult = mvc
 				.perform(get(UserControllerConstants.REST_API_ROOT_URL).contentType(MediaType.APPLICATION_JSON))
-				.andDo(print()).andExpect(status().isOk()).andReturn();
+				.andDo(print()).andExpect(status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE)).andReturn();
 		assertThat(mvcResult.getResponse().getContentLength()).isEqualTo(0);
 		verify(userService, VerificationModeFactory.times(1)).findAll();
 	}
@@ -109,7 +142,8 @@ public class UserControllerTest {
 
 		final ResultActions resultActions = mvc
 				.perform(get(UserControllerConstants.REST_API_ROOT_URL).contentType(MediaType.APPLICATION_JSON))
-				.andDo(print()).andExpect(status().isOk());
+				.andDo(print()).andExpect(status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE));
 		// Check users in response
 		TestUtils.andExpectAllFieldsInJsonListIsUserMichael(resultActions, 0);
 		TestUtils.andExpectAllFieldsInJsonListIsUserMarie(resultActions, 1);
@@ -136,7 +170,8 @@ public class UserControllerTest {
 				.perform(get(UserControllerConstants.REST_API_ROOT_URL + UserControllerConstants.PATH_FIND)
 						.param(UserControllerConstants.PARAM_FIRST_NAME, TestUtils.USER_CHARLES_FIRST_NAME)
 						.contentType(MediaType.APPLICATION_JSON))
-				.andDo(print()).andExpect(status().isOk());
+				.andDo(print()).andExpect(status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE));
 		// Check user Charles in response
 		TestUtils.andExpectAllFieldsInJsonListIsUserCharles(resultActions, 0);
 	}
@@ -157,7 +192,7 @@ public class UserControllerTest {
 		mvc.perform(get(UserControllerConstants.REST_API_ROOT_URL + UserControllerConstants.PATH_FIND)
 				.param(UserControllerConstants.PARAM_FIRST_NAME, TestUtils.USER_CHARLES_FIRST_NAME)
 				.contentType(MediaType.APPLICATION_JSON)).andDo(print()).andExpect(status().isOk())
-				.andExpect(content().string("[]"));
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(content().string("[]"));
 	}
 
 	/**
@@ -179,7 +214,8 @@ public class UserControllerTest {
 				.perform(get(UserControllerConstants.REST_API_ROOT_URL + UserControllerConstants.PATH_FIND)
 						.param(UserControllerConstants.PARAM_EMAIL, TestUtils.USER_CHARLES_EMAIL)
 						.contentType(MediaType.APPLICATION_JSON))
-				.andDo(print()).andExpect(status().isOk());
+				.andDo(print()).andExpect(status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE));
 		// Check user Charles in response
 		TestUtils.andExpectAllFieldsInJsonListIsUserCharles(resultActions, 0);
 	}
@@ -199,7 +235,8 @@ public class UserControllerTest {
 
 		mvc.perform(get(UserControllerConstants.REST_API_ROOT_URL + UserControllerConstants.PATH_FIND)
 				.param(UserControllerConstants.PARAM_EMAIL, "DOESNOTEXIST").contentType(MediaType.APPLICATION_JSON))
-				.andDo(print()).andExpect(status().isOk()).andExpect(content().string("[]"));
+				.andDo(print()).andExpect(status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE)).andExpect(content().string("[]"));
 	}
 
 	/**
@@ -217,6 +254,7 @@ public class UserControllerTest {
 
 		mvc.perform(delete(UserControllerConstants.REST_API_ROOT_URL + "/1").contentType(MediaType.APPLICATION_JSON))
 				.andDo(print()).andExpect(status().isNoContent()).andExpect(content().string(""));
+		verify(userService, VerificationModeFactory.times(1)).deleteUserById(1L);
 	}
 
 	/**
@@ -227,12 +265,22 @@ public class UserControllerTest {
 	 * @throws Exception not expected
 	 */
 	@Test
-	public void deleteUserById_whenUserDoesNotExist_thenResponseIsNotFoundAndHasEmptyBody() throws Exception {
-		// Mock repository response : throw exc
-		doThrow(UserNotFoundException.class).when(userService).deleteUserById(1L);
+	public void deleteUserById_whenUserDoesNotExist_thenResponseIsNotFoundAndHasExceptionDetailsInBody()
+			throws Exception {
+		given(timeService.getCurrentDateTimeTimestamp()).willReturn(EXCEPTION_TIMESTAMP);
 
-		mvc.perform(delete(UserControllerConstants.REST_API_ROOT_URL + "/1").contentType(MediaType.APPLICATION_JSON))
-				.andDo(print()).andExpect(status().isNotFound()).andExpect(content().string(""));
+		// Mock repository response : throw exc
+		doThrow(new UserNotFoundException(EXCEPTION_MESSAGE_NO_USER_FOUND_ID_1)).when(userService).deleteUserById(1L);
+
+		final ResultActions resultActions = mvc.perform(
+				delete(UserControllerConstants.REST_API_ROOT_URL + "/1").contentType(MediaType.APPLICATION_JSON))
+				.andDo(print()).andExpect(status().isNotFound());
+
+		// Check error details are present in response body
+		TestUtils.andExpectJsonObjectErrorDetails(resultActions, EXCEPTION_TIMESTAMP,
+				EXCEPTION_MESSAGE_NO_USER_FOUND_ID_1, EXCEPTION_URL_USER_NOT_FOUND_ID_1);
+
+		verify(userService, VerificationModeFactory.times(1)).deleteUserById(1L);
 	}
 
 	/**
@@ -264,10 +312,34 @@ public class UserControllerTest {
 		final ResultActions resultActions = mvc
 				.perform(put(UserControllerConstants.REST_API_ROOT_URL + "/" + userMichaelDTO.getId())
 						.contentType(MediaType.APPLICATION_JSON).content(JsonUtils.toJson(userMichaelDTO)))
-				.andDo(print()).andExpect(status().isOk());
+				.andDo(print()).andExpect(status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE));
 
 		TestUtils.andExpectAllFieldsInJsonObjectIsUser(resultActions, userMichaelDTO.getId(), newFirstName, newEmail,
 				newPassword);
-		verify(userService, VerificationModeFactory.times(1)).updateUser(Mockito.any());
+		verify(userService, VerificationModeFactory.times(1)).updateUser(any());
+	}
+
+	@Test
+	public void updateExistingUser_whenUserDoesNotExist_thenResponseIsNotFoundAndHasExceptionDetailsInBody()
+			throws Exception {
+		given(timeService.getCurrentDateTimeTimestamp()).willReturn(EXCEPTION_TIMESTAMP);
+
+		// Mock repository response : throw exc
+		doThrow(new UserNotFoundException(EXCEPTION_MESSAGE_NO_USER_FOUND_ID_1)).when(userService)
+				.updateUser(any(User.class));
+
+		final UserDTO userMichaelDTO = TestUtils.createTestUserDTOMichaelWithId();
+
+		final ResultActions resultActions = mvc
+				.perform(put(UserControllerConstants.REST_API_ROOT_URL + "/" + userMichaelDTO.getId())
+						.contentType(MediaType.APPLICATION_JSON).content(JsonUtils.toJson(userMichaelDTO)))
+				.andDo(print()).andExpect(status().isNotFound());
+
+		// Check error details are present in response body
+		TestUtils.andExpectJsonObjectErrorDetails(resultActions, EXCEPTION_TIMESTAMP,
+				EXCEPTION_MESSAGE_NO_USER_FOUND_ID_1, EXCEPTION_URL_USER_NOT_FOUND_ID_1);
+
+		verify(userService, VerificationModeFactory.times(1)).updateUser(any());
 	}
 }

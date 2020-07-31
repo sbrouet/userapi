@@ -53,8 +53,9 @@ curl http://localhost:8080/users/2
 
 # Delete an existing user
 curl -X DELETE http://localhost:8080/users/1
-# When user is found and deleted : {"timestamp":"2020-07-06T06:51:24.871+00:00","status":500,"error":"Internal Server Error","message":"","path":"/users/1"}
+# When user is found and deleted : response 200 OK with empty body
+
 
 # Delete a NON existing user with id 999
 curl -X DELETE http://localhost:8080/users/333
-# When user is NOT found : {"timestamp":"2020-07-06T06:51:49.149+00:00","status":404,"error":"Not Found","message":"","path":"/users/1"}
+# When user is NOT found : {"timestamp":1596260648864,"message":"No user found with id [333]","requestDetails":"uri=/users/333"}

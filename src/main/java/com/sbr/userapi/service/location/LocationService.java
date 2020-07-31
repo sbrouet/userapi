@@ -75,7 +75,9 @@ public class LocationService {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("isCallerFromSwitzerland(" + ip + ")");
 		}
+		// TODO !! REMOVE HACK !!
 		final boolean isFromSwitzerland = SWITZERLAND_COUNTRY_CODE_ISO_3166_1.equals(getCountryCodeForIP(ip));
+		// final boolean isFromSwitzerland = true;
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("isCallerFromSwitzerland(" + ip + ") : " + isFromSwitzerland);
 		}

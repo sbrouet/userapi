@@ -182,4 +182,25 @@ public class TestUtils {
 				.andExpect(jsonPath("$.password", is(userPassword)));
 	}
 
+	/**
+	 * Check expectations that user in json object contains an
+	 * {@link com.sbr.userapi.web.error.ErrorDetails}
+	 * 
+	 * @param resultActions  to chain expectations on
+	 * @param timestamp      expected
+	 *                       {@link com.sbr.userapi.web.error.ErrorDetails#getTimestamp()}
+	 * @param excMessage     expected
+	 *                       {@link com.sbr.userapi.web.error.ErrorDetails#getMessage()}
+	 * @param requestDetails expected
+	 *                       {@link com.sbr.userapi.web.error.ErrorDetails#getRequestDetails()}
+	 * 
+	 * @return a {@link ResultActions} that can be used to chain more expectations
+	 * @throws Exception
+	 */
+	public static final ResultActions andExpectJsonObjectErrorDetails(final ResultActions resultActions,
+			final long timestamp, final String excMessage, final String requestDetails) throws Exception {
+		return resultActions.andExpect(jsonPath("$.timestamp", is(timestamp)))
+				.andExpect(jsonPath("$.message", is(excMessage)))
+				.andExpect(jsonPath("$.requestDetails", is(requestDetails)));
+	}
 }

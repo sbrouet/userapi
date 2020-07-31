@@ -1,6 +1,9 @@
 package com.sbr.userapi.model.messaging;
 
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * A message sent to the message bus
@@ -8,6 +11,10 @@ import java.util.Objects;
  * @author sbrouet
  *
  */
+@Getter
+@Setter
+@EqualsAndHashCode
+@ToString
 public class Message {
 
 	/**
@@ -39,55 +46,6 @@ public class Message {
 		this.timeStamp = timeStamp;
 		this.userId = userId;
 		this.type = type;
-	}
-
-	public long getTimeStamp() {
-		return timeStamp;
-	}
-
-	public void setTimeStamp(long timeStamp) {
-		this.timeStamp = timeStamp;
-	}
-
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
-	public Type getType() {
-		return type;
-	}
-
-	public void setType(Type type) {
-		this.type = type;
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(timeStamp, type, userId);
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (!(obj instanceof Message)) {
-			return false;
-		}
-		Message other = (Message) obj;
-		return timeStamp == other.timeStamp && type == other.type && Objects.equals(userId, other.userId);
-	}
-
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("Message [timeStamp=").append(timeStamp).append(", userId=").append(userId).append(", type=")
-				.append(type).append("]");
-		return builder.toString();
 	}
 
 }

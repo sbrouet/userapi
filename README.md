@@ -169,15 +169,16 @@ Here is an explanation of some design choices.
 
 * Libraries
   * Spring Boot : well adapted to standalone applications and good support for REST / RESTFul applications
-  * Spring Cloud framework which is compatible with many messaging systems : Apache Kafka, Amazon Kinesis, Google PusbSub and others 
+  * Spring Cloud framework which is compatible with many messaging systems : Apache Kafka, Amazon Kinesis, Google PusbSub and others
 * In memory H2 database
   * Data is persisted into an in memory database, which is launched when the application starts and is shutdown when application stops. All data is lost at shutdown
   * This allows running the application without having to rely on an external database and still having all the JPA / Hibernate persistence layers working as on any database, which is **suitable for a demo usage only**
   * Note : **an actual external database can be used** simply by changing the configuration in the ```src/main/resources/application.properties``` file (see the ```spring.datasource.``` properties)
-
 * Logging to console only
   * This choice was done purposely with containerization in mind. Containers orchestrators such as Kubernetes are better suited for streaming logs from the application standard output
-
+* Error messages in response and error management
+  * Send in response body an ErrorDetails object containing a timestamp, an error message and the path of the request
+  * Use the Spring @ControllerAdvice annotation and implement a ResponseEntityExceptionHandler that catches exceptions and produces adequate ResponseEntity with ErrorDetails in body
 
 # Enhancements
 Many enhancements of this demo application are possible

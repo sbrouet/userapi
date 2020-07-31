@@ -1,8 +1,5 @@
 package com.sbr.userapi.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
 /**
  * Exception when a value is invalid according to the application.<BR/>
  * It is mapped to HTTP Status {@link HttpStatus#UNPROCESSABLE_ENTITY)} for
@@ -13,7 +10,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author sbrouet
  *
  */
-@ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY)
 public class InvalidValueException extends Exception {
 
 	private static final long serialVersionUID = 5637874728467833472L;

@@ -271,11 +271,19 @@ public class UserService {
 	 */
 	private final void sendMessage(final Message.Type messageType, final Long userId)
 			throws CouldNotSendMessageBusMessage {
-		if (!messageProcessor.mainChannel().send(message(new Message(new Date().getTime(), userId, messageType)),
-				SERVICE_BUS_SEND_MESSAGE_TIMEOUT_MILLIS)) {
-			throw new CouldNotSendMessageBusMessage(
-					"Failed sengind message : messageType=" + messageType + ", userId=" + userId);
+		final Message message = new Message(new Date().getTime(), userId, messageType);
+		try {
+			if (!messageProcessor.mainChannel().send(message(message), SERVICE_BUS_SEND_MESSAGE_TIMEOUT_MILLIS)) {
+				throwCouldNotSendMessageBusMessage(message, null);
+			}
+		} catch (RuntimeException e) {
+			throwCouldNotSendMessageBusMessage(message, e);
 		}
+	}
+
+	private static void throwCouldNotSendMessageBusMessage(final Message message, final Exception e)
+			throws CouldNotSendMessageBusMessage {
+		throw new CouldNotSendMessageBusMessage("Failed sendind message to message bus: message=" + message, e);
 	}
 
 	/**
