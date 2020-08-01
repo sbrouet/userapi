@@ -1,6 +1,7 @@
 package com.sbr.userapi.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.transaction.TestTransaction;
 
 import com.sbr.userapi.model.User;
 import com.sbr.userapi.test.TestUtils;
@@ -53,6 +55,37 @@ public class UserRepositoryIntegrationTest {
 		assertThat(foundUsers).isNotNull();
 		assertThat(foundUsers.size()).isEqualTo(1);
 		TestUtils.assertEqualsUserMichaelNoId(foundUsers.get(0));
+	}
+
+	@Test
+	public void save_whenInvalidDataThenAnExceptionIsThrown_firstName() {
+		final User user = TestUtils.createTestUserMichaelNoId();
+		user.setFirstName(null);
+		doTest_save_whenInvalidDataThenAnExceptionIsThrown(user);
+	}
+
+	@Test
+	public void save_whenInvalidDataThenAnExceptionIsThrown_email() {
+		final User user = TestUtils.createTestUserMichaelNoId();
+		user.setEmail(null);
+		doTest_save_whenInvalidDataThenAnExceptionIsThrown(user);
+	}
+
+	@Test
+	public void save_whenInvalidDataThenAnExceptionIsThrown_password() {
+		final User user = TestUtils.createTestUserMichaelNoId();
+		user.setPassword(null);
+		doTest_save_whenInvalidDataThenAnExceptionIsThrown(user);
+	}
+
+	private void doTest_save_whenInvalidDataThenAnExceptionIsThrown(User user) {
+		assertThrows(javax.validation.ConstraintViolationException.class, () -> {
+			userRepository.save(user);
+			// WARNING : validations are executed on flushing the session, so force flush
+			userRepository.flush();
+		});
+
+		assertThat(TestTransaction.isFlaggedForRollback()).isTrue();
 	}
 
 	/**

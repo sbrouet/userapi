@@ -4,7 +4,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sbr.userapi.exception.CouldNotSendMessageBusMessage;
-import com.sbr.userapi.exception.InvalidValueException;
 import com.sbr.userapi.exception.UserNotFoundException;
 import com.sbr.userapi.exception.location.CannotComputeLocationException;
 import com.sbr.userapi.exception.location.LocationNotAuthorizedException;
@@ -129,8 +127,6 @@ public class UserService {
 	 * @throws a {@link RuntimeException} or subclass is thrown when user could not
 	 *           be created
 	 * @return the newly created {@link User} having an {@link User#getId()} set
-	 * @throws InvalidValueException          when at least one user field value is
-	 *                                        invalid
 	 * @throws CannotComputeLocationException when the location of the client could
 	 *                                        not be computed
 	 * @throws LocationNotAuthorizedException when the location of the client is not
@@ -139,8 +135,8 @@ public class UserService {
 	 *                                        message bus
 	 */
 	@Transactional
-	public User createUser(final User newUser, final String clientRemoteAddrID) throws InvalidValueException,
-			CannotComputeLocationException, LocationNotAuthorizedException, CouldNotSendMessageBusMessage {
+	public User createUser(final User newUser, final String clientRemoteAddrID)
+			throws CannotComputeLocationException, LocationNotAuthorizedException, CouldNotSendMessageBusMessage {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("createUser (user:" + newUser + ", clientRemoteAddrID:" + clientRemoteAddrID + ")");
 		}
@@ -156,7 +152,6 @@ public class UserService {
 		// Id is computed by the ORM -> force id to null here to avoid a value being set
 		// by caller and let the ORM provide one
 		newUser.setId(null);
-		validateUserFieldsExceptId(newUser);
 		final User createdUser = repository.save(newUser);
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("createUser() New user created : " + createdUser);
@@ -176,14 +171,11 @@ public class UserService {
 	 * @param user the user containing updated information
 	 * @return the updated user
 	 * @throws UserNotFoundException         when user could not be found
-	 * @throws InvalidValueException         when at least one user field value is
-	 *                                       invalid
 	 * @throws CouldNotSendMessageBusMessage when message could not be sent to the
 	 *                                       message bus
 	 */
 	@Transactional
-	public User updateUser(final User user)
-			throws UserNotFoundException, InvalidValueException, CouldNotSendMessageBusMessage {
+	public User updateUser(final User user) throws UserNotFoundException, CouldNotSendMessageBusMessage {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("updateUser (" + user + ")");
 		}
@@ -193,8 +185,6 @@ public class UserService {
 		existingUser.setFirstName(user.getFirstName());
 		existingUser.setEmail(user.getEmail());
 		existingUser.setPassword(user.getPassword());
-
-		validateUserFieldsExceptId(user);
 
 		// Update user in database
 		final User updatedUser = repository.save(existingUser);
@@ -237,26 +227,6 @@ public class UserService {
 
 		// Notify any consumer in the service bus
 		sendMessage(Message.Type.USER_DELETED, id);
-	}
-
-	/**
-	 * Validate that user fields are valid according to data model constraints,
-	 * except the {@link User#getId()} field. Ensures that mandatory fields have a
-	 * value and that all fields size is within data model limits
-	 * 
-	 * @param user to be checked
-	 * @throws InvalidValueException when at least one user field value is invalid
-	 */
-	private static void validateUserFieldsExceptId(final User user) throws InvalidValueException {
-		if (StringUtils.isEmpty(user.getFirstName()) || StringUtils.length(user.getFirstName()) > 100) {
-			throw new InvalidValueException("First name must be not empty and less than 100 characters");
-		}
-		if (StringUtils.isEmpty(user.getEmail()) || StringUtils.length(user.getEmail()) > 50) {
-			throw new InvalidValueException("Email must be not empty and less than 50 characters");
-		}
-		if (StringUtils.isEmpty(user.getPassword()) || StringUtils.length(user.getPassword()) > 50) {
-			throw new InvalidValueException("Password must be not empty and less than 50 characters");
-		}
 	}
 
 	/**

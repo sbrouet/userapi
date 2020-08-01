@@ -4,7 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
+import java.util.List;
+
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.util.CollectionUtils;
 
 import com.sbr.userapi.dto.UserDTO;
 import com.sbr.userapi.model.User;
@@ -40,17 +43,17 @@ public class TestUtils {
 	public static final Long USER_MICHAEL_ID = 1L;
 	public static final String USER_MICHAEL_FIRST_NAME = "Michael";
 	public static final String USER_MICHAEL_EMAIL = "mfaraday@userapi.sbr";
-	public static final String USER_MICHAEL_PASSWORD = "dummyPwd1";
+	public static final String USER_MICHAEL_PASSWORD = "dummyTestPwd1";
 
 	public static final Long USER_MARIE_ID = 2L;
 	public static final String USER_MARIE_FIRST_NAME = "Marie";
 	public static final String USER_MARIE_EMAIL = "mcurie@userapi.sbr";
-	public static final String USER_MARIE_PASSWORD = "dummyPwd2";
+	public static final String USER_MARIE_PASSWORD = "dummyTestPwd2";
 
 	public static final Long USER_CHARLES_ID = 3L;
 	public static final String USER_CHARLES_FIRST_NAME = "Charles-Edouard";
 	public static final String USER_CHARLES_EMAIL = "lecorbusier@userapi.sbr";
-	public static final String USER_CHARLES_PASSWORD = "dummyPwd3";
+	public static final String USER_CHARLES_PASSWORD = "dummyTestPwd3";
 
 	public static User createTestUserMichaelNoId() {
 		return new User(USER_MICHAEL_FIRST_NAME, USER_MICHAEL_EMAIL, USER_MICHAEL_PASSWORD);
@@ -189,8 +192,10 @@ public class TestUtils {
 	 * @param resultActions  to chain expectations on
 	 * @param timestamp      expected
 	 *                       {@link com.sbr.userapi.web.error.ErrorDetails#getTimestamp()}
-	 * @param excMessage     expected
+	 * @param message        expected
 	 *                       {@link com.sbr.userapi.web.error.ErrorDetails#getMessage()}
+	 * @param details        expected
+	 *                       {@link com.sbr.userapi.web.error.ErrorDetails#getDetails()}
 	 * @param requestDetails expected
 	 *                       {@link com.sbr.userapi.web.error.ErrorDetails#getRequestDetails()}
 	 * 
@@ -198,9 +203,18 @@ public class TestUtils {
 	 * @throws Exception
 	 */
 	public static final ResultActions andExpectJsonObjectErrorDetails(final ResultActions resultActions,
-			final long timestamp, final String excMessage, final String requestDetails) throws Exception {
-		return resultActions.andExpect(jsonPath("$.timestamp", is(timestamp)))
-				.andExpect(jsonPath("$.message", is(excMessage)))
+			final long timestamp, final String message, final List<String> details, final String requestDetails)
+			throws Exception {
+		ResultActions newActions = resultActions.andExpect(jsonPath("$.timestamp", is(timestamp)))
+				.andExpect(jsonPath("$.message", is(message)))
 				.andExpect(jsonPath("$.requestDetails", is(requestDetails)));
+		if (!CollectionUtils.isEmpty(details)) {
+			int i = 0;
+			for (String detailMsg : details) {
+				newActions = resultActions.andExpect(jsonPath("$.details[" + i + "]", is(detailMsg)));
+				i++;
+			}
+		}
+		return newActions;
 	}
 }

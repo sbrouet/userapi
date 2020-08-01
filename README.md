@@ -179,6 +179,8 @@ Here is an explanation of some design choices.
 * Error messages in response and error management
   * Send in response body an ErrorDetails object containing a timestamp, an error message and the path of the request
   * Use the Spring @ControllerAdvice annotation and implement a ResponseEntityExceptionHandler that catches exceptions and produces adequate ResponseEntity with ErrorDetails in body
+* Validation
+  * Validate Hibernate entities using Jakarta Bean Validation 2.0 (JSR 380)
 
 # Enhancements
 Many enhancements of this demo application are possible

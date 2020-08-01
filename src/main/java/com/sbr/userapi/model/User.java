@@ -6,8 +6,14 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -18,6 +24,8 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "USER")
 public class User {
@@ -29,40 +37,24 @@ public class User {
 	@Id
 	@SequenceGenerator(name = "userIdSequenceGenerator", sequenceName = "SEQ_USER_ID", initialValue = 10, allocationSize = 1)
 	@GeneratedValue(generator = "userIdSequenceGenerator")
+	@NotNull(message = "id cannot be null")
 	private Long id;
 
 	@Column(name = "first_name", nullable = false, length = 100)
+	@NotBlank(message = "firstName cannot be null or blank")
+	@Size(min = 1, max = 100, message = "first_name must be between {min} and {max} characters long")
 	private String firstName;
 
 	@Column(name = "email", nullable = false, length = 50)
+	@Email(message = "Email should be valid")
+	@NotBlank(message = "email cannot be null or blank")
+	@Size(min = 10, max = 50, message = "email must be between {min} and {max} characters long")
 	private String email;
 
 	@Column(name = "password", nullable = false, length = 50)
+	@NotBlank(message = "password cannot be null or blank")
+	@Size(min = 10, max = 50, message = "password must be between {min} and {max} characters long")
 	private String password;
-
-	/**
-	 * Default constructor. This is mandatory for the ORM layer (Hibernate) to be
-	 * working
-	 */
-	public User() {
-		super();
-	}
-
-	/**
-	 * Constructor with all fields
-	 * 
-	 * @param id        user's id
-	 * @param firstName user's first name
-	 * @param email     user's email
-	 * @param password  user's password
-	 */
-	public User(final Long id, final String firstName, final String email, final String password) {
-		super();
-		this.id = id;
-		this.firstName = firstName;
-		this.email = email;
-		this.password = password;
-	}
 
 	/**
 	 * Constructor with all fields set except id

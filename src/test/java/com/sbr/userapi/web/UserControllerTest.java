@@ -2,6 +2,7 @@ package com.sbr.userapi.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -16,9 +17,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+
+import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -41,12 +48,11 @@ import com.sbr.userapi.test.TestUtils;
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(UserController.class)
 public class UserControllerTest {
-
-	private static final String EXCEPTION_MESSAGE_NO_USER_FOUND_ID_1 = "No user found with id [1]";
-
+	// Test constants
 	private static final long EXCEPTION_TIMESTAMP = 1596256892335L;
-
+	private static final String EXCEPTION_MESSAGE_NO_USER_FOUND_ID_1 = "No user found with id [1]";
 	private static final String EXCEPTION_URL_USER_NOT_FOUND_ID_1 = "uri=/users/1";
+	private static List<String> NO_DETAILS = null;
 
 	@Autowired
 	private MockMvc mvc;
@@ -93,17 +99,17 @@ public class UserControllerTest {
 
 		// Check error details are present in response body
 		TestUtils.andExpectJsonObjectErrorDetails(resultActions, EXCEPTION_TIMESTAMP,
-				EXCEPTION_MESSAGE_NO_USER_FOUND_ID_1, EXCEPTION_URL_USER_NOT_FOUND_ID_1);
+				EXCEPTION_MESSAGE_NO_USER_FOUND_ID_1, NO_DETAILS, EXCEPTION_URL_USER_NOT_FOUND_ID_1);
 
 		verify(userService, VerificationModeFactory.times(1)).getUserById(1L);
 	}
 
 	@Test
-	public void createUser_whenPostUser_thenResponseContainsUserDetails() throws Exception {
+	public void createUser_thenResponseContainsUserDetails() throws Exception {
 		final User userMichael = TestUtils.createTestUserMichaelWithId();
 
 		// Mock repository response
-		given(userService.createUser(any(), any())).willReturn(userMichael);
+		given(userService.createUser(any(User.class), anyString())).willReturn(userMichael);
 
 		final ResultActions resultActions = mvc
 				.perform(post(UserControllerConstants.REST_API_ROOT_URL).contentType(MediaType.APPLICATION_JSON)
@@ -112,6 +118,35 @@ public class UserControllerTest {
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE));
 		TestUtils.andExpectAllFieldsInJsonObjectIsUserMichael(resultActions);
 		verify(userService, VerificationModeFactory.times(1)).createUser(any(), any());
+	}
+
+	@Test
+	public void createUser_whenInvalidData_thenResponseContainsErrorDetails() throws Exception {
+		given(timeService.getCurrentDateTimeTimestamp()).willReturn(EXCEPTION_TIMESTAMP);
+
+		final User userMichael = TestUtils.createTestUserMichaelWithId();
+
+		// Mock repository response : throw exc
+		final String violationField = "firstName";
+		final String violationMsg = "firstName cannot be null or blank";
+		ConstraintViolation<?> mockCV = Mockito.mock(ConstraintViolation.class);
+		Mockito.when(mockCV.getPropertyPath()).thenReturn(PathImpl.createPathFromString("firstName"));
+		Mockito.when(mockCV.getMessage()).thenReturn(violationMsg);
+		Set<ConstraintViolation<?>> constraintViolations = Set.of(mockCV);
+		ConstraintViolationException cve = new ConstraintViolationException("a message", constraintViolations);
+
+		doThrow(cve).when(userService).createUser(any(User.class), anyString());
+
+		ResultActions resultActions = mvc.perform(post(UserControllerConstants.REST_API_ROOT_URL)
+				.contentType(MediaType.APPLICATION_JSON).content(JsonUtils.toJson(userMichael))).andDo(print())
+				.andExpect(status().isBadRequest());
+
+		// Check error details are present in response body
+		final List<String> expectedDetailsMsgs = List.of(violationField + ": " + violationMsg);
+		resultActions = TestUtils.andExpectJsonObjectErrorDetails(resultActions, EXCEPTION_TIMESTAMP,
+				"Data has constraint violations (see the details field)", expectedDetailsMsgs, "uri=/users");
+
+		verify(userService, VerificationModeFactory.times(1)).createUser(any(User.class), anyString());
 	}
 
 	@Test
@@ -278,7 +313,7 @@ public class UserControllerTest {
 
 		// Check error details are present in response body
 		TestUtils.andExpectJsonObjectErrorDetails(resultActions, EXCEPTION_TIMESTAMP,
-				EXCEPTION_MESSAGE_NO_USER_FOUND_ID_1, EXCEPTION_URL_USER_NOT_FOUND_ID_1);
+				EXCEPTION_MESSAGE_NO_USER_FOUND_ID_1, NO_DETAILS, EXCEPTION_URL_USER_NOT_FOUND_ID_1);
 
 		verify(userService, VerificationModeFactory.times(1)).deleteUserById(1L);
 	}
@@ -338,7 +373,7 @@ public class UserControllerTest {
 
 		// Check error details are present in response body
 		TestUtils.andExpectJsonObjectErrorDetails(resultActions, EXCEPTION_TIMESTAMP,
-				EXCEPTION_MESSAGE_NO_USER_FOUND_ID_1, EXCEPTION_URL_USER_NOT_FOUND_ID_1);
+				EXCEPTION_MESSAGE_NO_USER_FOUND_ID_1, NO_DETAILS, EXCEPTION_URL_USER_NOT_FOUND_ID_1);
 
 		verify(userService, VerificationModeFactory.times(1)).updateUser(any());
 	}

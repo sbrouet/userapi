@@ -28,7 +28,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.sbr.userapi.exception.CouldNotSendMessageBusMessage;
-import com.sbr.userapi.exception.InvalidValueException;
 import com.sbr.userapi.exception.UserNotFoundException;
 import com.sbr.userapi.exception.location.CannotComputeLocationException;
 import com.sbr.userapi.exception.location.LocationNotAuthorizedException;
@@ -208,8 +207,7 @@ public class UserServiceTest {
 	 */
 	@Test
 	public void createUser_whenValidUserAndClientRequestFromSwitzerland_userShouldBeCreated()
-			throws InvalidValueException, CannotComputeLocationException, LocationNotAuthorizedException,
-			CouldNotSendMessageBusMessage {
+			throws CannotComputeLocationException, LocationNotAuthorizedException, CouldNotSendMessageBusMessage {
 		// Create user
 		final User user = userService.createUser(TestUtils.createTestUserCharlesNoId(), TestUtils.SWISSCOM_CH_IP);
 
@@ -232,17 +230,9 @@ public class UserServiceTest {
 	 */
 	@Test
 	public void createUser_whenValidUserAndClientRequestNotFromSwitzerland_anExceptionShouldBeRaised()
-			throws InvalidValueException, CannotComputeLocationException, LocationNotAuthorizedException {
+			throws CannotComputeLocationException, LocationNotAuthorizedException {
 		assertThrows(LocationNotAuthorizedException.class,
 				() -> userService.createUser(TestUtils.createTestUserCharlesNoId(), NOT_IN_SWITZERLAND_IP));
-		assertNoMessageWasSentToBus();
-	}
-
-	@Test
-	public void createUser_whenInValidUserDatad_anExceptionShouldBeRaised()
-			throws InvalidValueException, CannotComputeLocationException, LocationNotAuthorizedException {
-		assertThrows(InvalidValueException.class,
-				() -> userService.createUser(buildUserWithInvalidFirstNameTooLong(), TestUtils.SWISSCOM_CH_IP));
 		assertNoMessageWasSentToBus();
 	}
 
