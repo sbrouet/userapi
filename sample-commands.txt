@@ -30,16 +30,16 @@ curl http://localhost:8080/users/find?first-name=Albert\&email=aeinstein@userapi
 
 
 # Create a new user
-curl -X POST http://localhost:8080/users -H 'Content-type:application/json' -d '{"firstName":"Youri","email":"ygagarin@themoon.sbr","password":"avoidCharactersThatWouldBreakCommandLineForDemo"}'
+curl -i -X POST http://localhost:8080/users -H 'Content-type:application/json' -d '{"firstName":"Youri","email":"ygagarin@themoon.sbr","password":"avoidCharactersThatWouldBreakCommandLineForDemo"}'
 # {"id":10,"firstName":"Youri","email":"ygagarin@themoon.sbr","password":"avoidCharactersThatWouldBreakCommandLineForDemo"}
 
 # Create a new user with an invalid (too long) password
-curl -X POST http://localhost:8080/users -H 'Content-type:application/json' -d '{"firstName":"Youri","email":"ygagarin@themoon.sbr","password":"thisPasswordIsreallyTooLongWithMoreThanfiftyCharacters"}'
+curl -i -X POST http://localhost:8080/users -H 'Content-type:application/json' -d '{"firstName":"Youri","email":"ygagarin@themoon.sbr","password":"thisPasswordIsreallyTooLongWithMoreThanfiftyCharacters"}'
 # {"timestamp":"2020-07-06T08:12:07.957+00:00","status":422,"error":"Unprocessable Entity","message":"","path":"/users"}
 
 
 # Fully update an existing user
-curl -X PUT http://localhost:8080/users/2 -H 'Content-type:application/json' -d '{"firstName":"Albert","email":"albert_einstein@userapi.sbr","password":"newPassword"}'
+curl -i -X PUT http://localhost:8080/users/2 -H 'Content-type:application/json' -d '{"firstName":"Albert","email":"albert_einstein@userapi.sbr","password":"newPassword"}'
 # {"id":2,"firstName":"Albert","email":"albert_einstein@userapi.sbr","password":"newPassword"}
 # Check : get it back again
 curl http://localhost:8080/users/2
@@ -52,10 +52,10 @@ curl http://localhost:8080/users/2
 
 
 # Delete an existing user
-curl -X DELETE http://localhost:8080/users/1
-# When user is found and deleted : response 200 OK with empty body
+curl -i -X DELETE http://localhost:8080/users/1
+# When user is found and deleted : response 204 "No Content" with empty body
 
 
 # Delete a NON existing user with id 999
-curl -X DELETE http://localhost:8080/users/333
+curl -i -X DELETE http://localhost:8080/users/333
 # When user is NOT found : {"timestamp":1596260648864,"message":"No user found with id [333]","requestDetails":"uri=/users/333"}
