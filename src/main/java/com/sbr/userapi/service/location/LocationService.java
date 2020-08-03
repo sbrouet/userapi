@@ -1,7 +1,5 @@
 package com.sbr.userapi.service.location;
 
-import java.text.MessageFormat;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.sbr.userapi.configuration.ConfigurationBean;
 import com.sbr.userapi.exception.location.CannotComputeLocationException;
@@ -29,20 +29,6 @@ public class LocationService {
 	 */
 	private static final String SWITZERLAND_COUNTRY_CODE_ISO_3166_1 = "CH";
 
-	// TODO SONAR java:S5164 "ThreadLocal" variables should be cleaned up when no
-	// longer used -> check if applicable and fix if required
-	/**
-	 * A {@link MessageFormat} used to create the location service REST URLs by IP.
-	 * It is put inside a {@ThreadLocal} object so it is thread safe, so it can be
-	 * reused safely from all threads
-	 */
-	private ThreadLocal<MessageFormat> threadLocalMessageFormat = new ThreadLocal<MessageFormat>() {
-		@Override
-		protected MessageFormat initialValue() {
-			return new MessageFormat(configBean.getIpAPIUrlTemplate());
-		}
-	};
-
 	/**
 	 * The response body from the API location REST Service when it does not know
 	 * what is an IP's country
@@ -54,13 +40,15 @@ public class LocationService {
 	 */
 	private RestTemplate restTemplate;
 
-	// TODO provide all dependent objects in constructor
-	@Autowired
-	private ConfigurationBean configBean;
+	/** Template for url for requesting location data */
+	private UriComponents ipApiUriComponents;
 
 	@Autowired
-	public LocationService(RestTemplate restTemplate) {
+	public LocationService(RestTemplate restTemplate, ConfigurationBean configurationBean) {
 		this.restTemplate = restTemplate;
+
+		// Prepare url template
+		ipApiUriComponents = UriComponentsBuilder.fromUriString(configurationBean.getIpAPIUrlTemplate()).build();
 	}
 
 	/**
@@ -123,6 +111,7 @@ public class LocationService {
 	 *         <code>null</code>
 	 */
 	String buildCountryCodeRestServiceURLForIP(final String ip) {
-		return threadLocalMessageFormat.get().format(new Object[] { ip });
+		return ipApiUriComponents.expand(ip).toUriString();
 	}
+
 }

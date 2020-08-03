@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.client.RestTemplate;
 
+import com.sbr.userapi.configuration.ConfigurationBean;
 import com.sbr.userapi.exception.location.CannotComputeLocationException;
 import com.sbr.userapi.test.TestUtils;
 
@@ -73,8 +74,8 @@ public class LocationServiceTest {
 		 * @return an initialized {@link LocationService}
 		 */
 		@Bean
-		public LocationService locationService(RestTemplate restTemplate) {
-			return new LocationService(restTemplate);
+		public LocationService locationService(RestTemplate restTemplate, ConfigurationBean configurationBean) {
+			return new LocationService(restTemplate, configurationBean);
 		}
 	}
 

@@ -29,7 +29,7 @@ public class ApplicationConfiguration {
 	 */
 	@Bean
 	public RestTemplate restTemplate(RestTemplateBuilder builder) {
-		return builder.setConnectTimeout(Duration.ofMillis(configBean.getIpAPITimeoutConnect())) //
+		return builder.setConnectTimeout(Duration.ofMillis(configBean.getIpAPITimeoutConnect()))
 				.setReadTimeout(Duration.ofMillis(configBean.getIpAPITimeoutRead())).build();
 	}
 
