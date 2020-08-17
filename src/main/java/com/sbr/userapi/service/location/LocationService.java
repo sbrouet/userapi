@@ -33,7 +33,7 @@ public class LocationService {
 	 * The response body from the API location REST Service when it does not know
 	 * what is an IP's country
 	 */
-	private static String COUNTRY_UNDEFINED_RESPONSE_BODY = "Undefined";
+	static String COUNTRY_UNDEFINED_RESPONSE_BODY = "Undefined";
 
 	/**
 	 * Client to the external REST Webservice used to get IP location information

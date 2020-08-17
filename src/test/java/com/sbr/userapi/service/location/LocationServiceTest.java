@@ -1,7 +1,9 @@
 package com.sbr.userapi.service.location;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.times;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -85,10 +87,6 @@ public class LocationServiceTest {
 	@MockBean
 	private RestTemplate restTemplate;
 
-	/*
-	 * @MockBean private ConfigurationBean configurationBean;
-	 */
-
 	/**
 	 * Test method
 	 * {@link LocationService#buildCountryCodeRestServiceURLForIP(String)}
@@ -139,6 +137,39 @@ public class LocationServiceTest {
 				.isEqualTo(SWITZERLAND_COUNTRY_CODE_ISO_3166_1);
 		Mockito.verify(mockResponse, atLeast(1)).getStatusCode();
 		Mockito.verify(mockResponse, atLeast(1)).getBody();
+	}
+
+	@Test
+	public void getCountryCodeForIP_externalServiceFailure_notOKStatusCode_ShouldRaiseException() {
+		ResponseEntity<String> mockResponse = Mockito.mock(ResponseEntity.class);
+
+		Mockito.when(mockResponse.getStatusCode()).thenReturn(HttpStatus.INTERNAL_SERVER_ERROR);
+		Mockito.when(restTemplate.getForEntity(IP_API_SERVICE_URL_FOR_AN_CH_IP, String.class)).thenReturn(mockResponse);
+
+		// Test
+		assertThrows(CannotComputeLocationException.class, () -> {
+			locationService.getCountryCodeForIP(TestUtils.SWISSCOM_CH_IP);
+		});
+		Mockito.verify(mockResponse, atLeast(1)).getStatusCode();
+		Mockito.verify(mockResponse, times(1)).getBody();
+		Mockito.verify(restTemplate, times(1)).getForEntity(IP_API_SERVICE_URL_FOR_AN_CH_IP, String.class);
+	}
+
+	@Test
+	public void getCountryCodeForIP_externalServiceFailure_bodyUndefinedValue_ShouldRaiseException() {
+		ResponseEntity<String> mockResponse = Mockito.mock(ResponseEntity.class);
+
+		Mockito.when(mockResponse.getStatusCode()).thenReturn(HttpStatus.INTERNAL_SERVER_ERROR);
+		Mockito.when(mockResponse.getBody()).thenReturn(LocationService.COUNTRY_UNDEFINED_RESPONSE_BODY);
+		Mockito.when(restTemplate.getForEntity(IP_API_SERVICE_URL_FOR_AN_CH_IP, String.class)).thenReturn(mockResponse);
+
+		// Test
+		assertThrows(CannotComputeLocationException.class, () -> {
+			locationService.getCountryCodeForIP(TestUtils.SWISSCOM_CH_IP);
+		});
+		Mockito.verify(mockResponse, atLeast(1)).getStatusCode();
+		Mockito.verify(mockResponse, times(1)).getBody();
+		Mockito.verify(restTemplate, times(1)).getForEntity(IP_API_SERVICE_URL_FOR_AN_CH_IP, String.class);
 	}
 
 	/**
