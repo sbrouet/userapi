@@ -17,26 +17,23 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.Example;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.sbr.userapi.exception.CouldNotSendMessageBusMessage;
 import com.sbr.userapi.exception.UserNotFoundException;
 import com.sbr.userapi.exception.location.CannotComputeLocationException;
 import com.sbr.userapi.exception.location.LocationNotAuthorizedException;
-import com.sbr.userapi.messaging.processor.MessageProcessor;
 import com.sbr.userapi.model.User;
 import com.sbr.userapi.model.messaging.Message;
 import com.sbr.userapi.repository.UserRepository;
 import com.sbr.userapi.service.location.LocationService;
-import com.sbr.userapi.service.user.UserService;
+import com.sbr.userapi.service.message.MessageService;
 import com.sbr.userapi.test.TestUtils;
 
 @ExtendWith(SpringExtension.class)
@@ -46,8 +43,6 @@ public class UserServiceTest {
 
 	/** An IP address outside of Switzerland */
 	private static final String NOT_IN_SWITZERLAND_IP = "1.1.1.1";
-
-	private static final String INVALID_FIRST_NAME_TOO_LONG = "way_too_long_firstname_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
 	@TestConfiguration
 	static class UserServiceTestContextConfiguration {
@@ -61,8 +56,8 @@ public class UserServiceTest {
 		 */
 		@Bean
 		public UserService userService(UserRepository userRepository, LocationService locationService,
-				MessageProcessor messageProcessor) {
-			return new UserService(userRepository, locationService, messageProcessor);
+				MessageService messageService) {
+			return new UserService(userRepository, locationService, messageService);
 		}
 	}
 
@@ -76,26 +71,23 @@ public class UserServiceTest {
 	private LocationService locationService;
 
 	@MockBean
-	private MessageProcessor messageProcessor;
+	private MessageService messageService;
 
-	/**
-	 * Mock for messageProcessor channel, allows avoiding actual attempts to send
-	 * messages through the cloud (that would fail) and verifying the messages sent
-	 */
-	@Mock
-	private MessageChannel mockMessageChannel;
+	/** Test user created during {@link #setUp()} */
+	User userMichael;
 
 	/**
 	 * Create test users and mock methods on {@link UserService}
 	 * 
 	 * @throws CannotComputeLocationException
+	 * @throws CouldNotSendMessageBusMessage
 	 */
 	@BeforeEach
-	public void setUp() throws CannotComputeLocationException {
+	public void setUp() throws CannotComputeLocationException, CouldNotSendMessageBusMessage {
 		// Create test users. Force Id as the database calls are mocked so the id will
 		// not be automatically set (the objects returned by the repository are the ones
 		// prepared here instead of the actual ORM system returned ones)
-		final User userMichael = TestUtils.createTestUserMichaelWithId();
+		userMichael = TestUtils.createTestUserMichaelWithId();
 		final User userMarie = TestUtils.createTestUserMarieWithId();
 		final User userCharles = TestUtils.createTestUserCharlesWithId();
 
@@ -131,10 +123,8 @@ public class UserServiceTest {
 		Mockito.when(locationService.isCallerFromSwitzerland(TestUtils.SWISSCOM_CH_IP)).thenReturn(true);
 		Mockito.when(locationService.isCallerFromSwitzerland(NOT_IN_SWITZERLAND_IP)).thenReturn(false);
 
-		// Mock the channel used to send messages
-		Mockito.when(messageProcessor.mainChannel()).thenReturn(mockMessageChannel);
-		Mockito.when(mockMessageChannel.send(any(org.springframework.messaging.Message.class), anyLong()))
-				.thenReturn(true);
+		// Mock the message service
+		Mockito.doNothing().when(messageService).sendMessage(any(Message.Type.class), anyLong());
 
 		// Mock findById and existsById
 		Mockito.when(userRepository.findById(userMichael.getId())).thenReturn(Optional.of(userMichael));
@@ -218,7 +208,7 @@ public class UserServiceTest {
 		TestUtils.assertEqualsUserCharles(user);
 
 		// Verify the contents of message send to the message bus
-		assertMessageWasSentToBus(Message.Type.USER_CREATED, user.getId());
+		assertMessageWasSent(Message.Type.USER_CREATED, user.getId());
 	}
 
 	/**
@@ -231,10 +221,26 @@ public class UserServiceTest {
 	 */
 	@Test
 	public void createUser_whenValidUserAndClientRequestNotFromSwitzerland_anExceptionShouldBeRaised()
-			throws CannotComputeLocationException, LocationNotAuthorizedException {
+			throws CannotComputeLocationException, LocationNotAuthorizedException, CouldNotSendMessageBusMessage {
 		assertThrows(LocationNotAuthorizedException.class,
 				() -> userService.createUser(TestUtils.createTestUserCharlesNoId(), NOT_IN_SWITZERLAND_IP));
 		assertNoMessageWasSentToBus();
+	}
+
+	/**
+	 * Test method {@link UserService#createUser(User, String)} called with valid
+	 * data : when the messaging service fails, the exception should be thrown back
+	 * 
+	 * @throws UserNotFoundException         not expected
+	 * @throws CouldNotSendMessageBusMessage not expected
+	 */
+	@Test
+	public void createUser_whenMessageCouldNotBeSentToServiceBus_anExceptionShouldBeRaised()
+			throws CannotComputeLocationException, LocationNotAuthorizedException, CouldNotSendMessageBusMessage {
+		Mockito.doThrow(CouldNotSendMessageBusMessage.class).when(messageService).sendMessage(any(Message.Type.class),
+				anyLong());
+		assertThrows(CouldNotSendMessageBusMessage.class,
+				() -> userService.createUser(TestUtils.createTestUserCharlesNoId(), TestUtils.SWISSCOM_CH_IP));
 	}
 
 	/**
@@ -246,21 +252,17 @@ public class UserServiceTest {
 	@Test
 	public void deleteUser_whenValidUserItShouldBeDeleted()
 			throws UserNotFoundException, CouldNotSendMessageBusMessage {
-		// Find a user
-		final List<User> found = userService.findUser(TestUtils.USER_MICHAEL_FIRST_NAME, NO_SEARCH_CRITERIA);
-		assertThat(found.size()).isEqualTo(1);
-
-		final User user = found.get(0);
+		Mockito.doNothing().when(userRepository).deleteById(anyLong());
 
 		// Delete user
-		userService.deleteUserById(user.getId());
+		userService.deleteUserById(userMichael.getId());
 
 		// Check the delete has actually been called on the repository with the correct
 		// user id
-		Mockito.verify(userRepository, times(1)).deleteById(user.getId());
+		Mockito.verify(userRepository, times(1)).deleteById(userMichael.getId());
 
 		// Verify the contents of message send to the message bus
-		assertMessageWasSentToBus(Message.Type.USER_DELETED, user.getId());
+		assertMessageWasSent(Message.Type.USER_DELETED, userMichael.getId());
 	}
 
 	/**
@@ -280,36 +282,47 @@ public class UserServiceTest {
 		assertNoMessageWasSentToBus();
 	}
 
-	private User buildUserWithInvalidFirstNameTooLong() {
-		return new User(INVALID_FIRST_NAME_TOO_LONG, "fake@email.com", "dummypassword");
+	/**
+	 * Test method {@link UserService#deleteUserById(Long)} called with valid data :
+	 * when the messaging service fails, the exception should be thrown back
+	 * 
+	 * @throws UserNotFoundException         not expected
+	 * @throws CouldNotSendMessageBusMessage not expected
+	 */
+	@Test
+	public void deleteUser_whenMessageCouldNotBeSentToServiceBus_anExceptionShouldBeRaised()
+			throws CannotComputeLocationException, LocationNotAuthorizedException, CouldNotSendMessageBusMessage {
+		Mockito.doThrow(CouldNotSendMessageBusMessage.class).when(messageService).sendMessage(any(Message.Type.class),
+				anyLong());
+		assertThrows(CouldNotSendMessageBusMessage.class, () -> userService.deleteUserById(userMichael.getId()));
 	}
 
 	/**
-	 * Assert that a {@link Message} has been sent to the message bus with expected
-	 * contents
+	 * Assert that a {@link Message} has been sent to the message service with
+	 * expected contents
 	 * 
 	 * @param expectedMessageType expected {@link Message.Type}
 	 * @param expectedUserId      expected user id
+	 * @throws CouldNotSendMessageBusMessage
 	 */
-	private void assertMessageWasSentToBus(final Message.Type expectedMessageType, final Long expectedUserId) {
-		final ArgumentCaptor<org.springframework.messaging.Message<Message>> argument = ArgumentCaptor
-				.forClass(org.springframework.messaging.Message.class);
-		Mockito.verify(mockMessageChannel, times(1)).send(argument.capture(), anyLong());
-		final Message msgSent = argument.getValue().getPayload();
-		assertThat(msgSent.getType()).isEqualTo(expectedMessageType);
-		assertThat(msgSent.getUserId()).isEqualTo(expectedUserId);
-		assertThat(msgSent.getTimeStamp() > 0);
-		Mockito.verifyNoMoreInteractions(mockMessageChannel);
+	private void assertMessageWasSent(final Message.Type expectedMessageType, final Long expectedUserId)
+			throws CouldNotSendMessageBusMessage {
+		final ArgumentCaptor<Message.Type> argumentMessageType = ArgumentCaptor.forClass(Message.Type.class);
+		final ArgumentCaptor<Long> argumentUserId = ArgumentCaptor.forClass(Long.class);
+		Mockito.verify(messageService, times(1)).sendMessage(argumentMessageType.capture(), argumentUserId.capture());
+		assertThat(argumentMessageType.getValue()).isEqualTo(expectedMessageType);
+		assertThat(argumentUserId.getValue()).isEqualTo(expectedUserId);
+		Mockito.verifyNoMoreInteractions(messageService);
 	}
 
 	/**
-	 * Assert that no {@link Message} has been sent to the message bus with expected
+	 * Assert that no {@link Message} has been sent to the message bus
+	 * 
+	 * @throws CouldNotSendMessageBusMessage
 	 */
-	private void assertNoMessageWasSentToBus() {
-		Mockito.verify(messageProcessor, times(0)).mainChannel();
-		Mockito.verifyNoMoreInteractions(messageProcessor);
-		Mockito.verify(mockMessageChannel, times(0)).send(any(), anyLong());
-		Mockito.verifyNoMoreInteractions(mockMessageChannel);
+	private void assertNoMessageWasSentToBus() throws CouldNotSendMessageBusMessage {
+		Mockito.verify(messageService, times(0)).sendMessage(any(Message.Type.class), anyLong());
+		Mockito.verifyNoMoreInteractions(messageService);
 	}
 
 	/**
@@ -344,4 +357,5 @@ public class UserServiceTest {
 					&& Objects.equals(leftUser.getPassword(), rightUser.getPassword());
 		}
 	}
+
 }
