@@ -40,8 +40,8 @@ import org.springframework.test.web.servlet.ResultActions;
 import com.sbr.userapi.dto.UserDTO;
 import com.sbr.userapi.exception.UserNotFoundException;
 import com.sbr.userapi.model.User;
-import com.sbr.userapi.service.UserService;
 import com.sbr.userapi.service.time.TimeService;
+import com.sbr.userapi.service.user.UserService;
 import com.sbr.userapi.test.JsonUtils;
 import com.sbr.userapi.test.TestUtils;
 

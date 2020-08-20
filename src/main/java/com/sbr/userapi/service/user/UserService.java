@@ -1,4 +1,4 @@
-package com.sbr.userapi.service;
+package com.sbr.userapi.service.user;
 
 import java.util.Date;
 import java.util.List;

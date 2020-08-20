@@ -32,7 +32,7 @@ import com.sbr.userapi.exception.UserNotFoundException;
 import com.sbr.userapi.exception.location.CannotComputeLocationException;
 import com.sbr.userapi.exception.location.LocationNotAuthorizedException;
 import com.sbr.userapi.model.User;
-import com.sbr.userapi.service.UserService;
+import com.sbr.userapi.service.user.UserService;
 import com.sbr.userapi.web.utils.ControllerUtils;
 
 /**

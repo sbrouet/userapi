@@ -1,4 +1,4 @@
-package com.sbr.userapi.service;
+package com.sbr.userapi.service.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -36,6 +36,7 @@ import com.sbr.userapi.model.User;
 import com.sbr.userapi.model.messaging.Message;
 import com.sbr.userapi.repository.UserRepository;
 import com.sbr.userapi.service.location.LocationService;
+import com.sbr.userapi.service.user.UserService;
 import com.sbr.userapi.test.TestUtils;
 
 @ExtendWith(SpringExtension.class)
