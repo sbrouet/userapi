@@ -18,4 +18,10 @@
 		<appender-ref ref="CONSOLE" />
 	</logger>
 
+	<logger name="org.hibernate" additivity="false" level="info">
+		<appender-ref ref="CONSOLE" />
+	</logger>
+	<logger name="org.springframework" additivity="false" level="info">
+		<appender-ref ref="CONSOLE" />
+	</logger>
 </configuration>

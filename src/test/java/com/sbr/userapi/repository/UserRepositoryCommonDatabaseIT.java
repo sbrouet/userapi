@@ -9,25 +9,23 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.transaction.TestTransaction;
 
-import com.sbr.userapi.TestConstants;
 import com.sbr.userapi.model.User;
 import com.sbr.userapi.test.TestUtils;
 
 /**
- * Integration test for JPA repository {@link UserRepository}. The repository
- * operates the in-memory H2 database to search and create users
+ * Common base class for running integration tests of the JPA repository
+ * {@link UserRepository} on an actual database<BR/>
+ * Subclasses may need specific configuration
  * 
  * @author sbrouet
  *
  */
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
-@ActiveProfiles(TestConstants.SPRING_PROFILE_IN_MEMORY_DATABASE_H2)
-public class UserRepositoryIntegrationTest {
+public abstract class UserRepositoryCommonDatabaseIT {
 
 	@Autowired
 	private UserRepository userRepository;

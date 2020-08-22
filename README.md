@@ -23,7 +23,8 @@ In case you use a different port, you will have to adapt the port number accordi
 
 ## Prerequisites for running the application
 In order for the UserApiApplication to be working you need to run the following components in that order (technical details follow)
-- running a RabbitMQ instance
+- having a working and accessible Docker daemon on localhost (it is used by database integration tests, not related to running RabbitMQ)
+- running a RabbitMQ instance with Docker
 - running the UserApiApplication
 
 ## Technical prerequisites
@@ -181,6 +182,10 @@ Here is an explanation of some design choices.
   * Use the Spring @ControllerAdvice annotation and implement a ResponseEntityExceptionHandler that catches exceptions and produces adequate ResponseEntity with ErrorDetails in body
 * Validation
   * Validate Hibernate entities using Jakarta Bean Validation 2.0 (JSR 380)
+* Database Integration Tests
+  * One test targets an in-memory h2 database
+  * Another one launches an external MariaDb database inside a Docker container and uses this actual database
+    * See (https://www.testcontainers.org) for details on such containers
 
 # Enhancements
 Many enhancements of this demo application are possible
