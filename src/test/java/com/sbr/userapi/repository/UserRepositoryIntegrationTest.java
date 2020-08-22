@@ -9,9 +9,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.transaction.TestTransaction;
 
+import com.sbr.userapi.TestConstants;
 import com.sbr.userapi.model.User;
 import com.sbr.userapi.test.TestUtils;
 
@@ -24,6 +26,7 @@ import com.sbr.userapi.test.TestUtils;
  */
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
+@ActiveProfiles(TestConstants.SPRING_PROFILE_IN_MEMORY_DATABASE_H2)
 public class UserRepositoryIntegrationTest {
 
 	@Autowired
