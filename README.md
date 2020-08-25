@@ -195,10 +195,9 @@ Many enhancements of this demo application are possible
 - Ability to GET multiple users at once by id (Example: /users/{id1},{id2})
 
 ## Technical enhancements
-- Unit tests code coverage : currently coverage is greather than 80% (measured with EclEmma in Eclipse). It has to be increased. 
+- Unit tests and integration tests code coverage : currently coverage is greater than 84% (measured with EclEmma in Eclipse). It has to be increased. 
 - Logging : create multiple profiles (e.g. dev/staging/production)
 - RESTFul API : make the API RESTFUl using String HATEOAS project (https://spring.io/projects/spring-hateoas)
-- Error management : provide more details about the errors in the API responses (currently messages in thrown exceptions are not used)
 - Message bus :
   - make access to the message bus configurable using properties
   - application could connect to many other systems than RabbitMQ such as Kafka since it uses the Spring Cloud framework which is compatible with many systems. Some configuration changes would allow such change without changing the application code.
