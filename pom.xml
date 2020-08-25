@@ -16,6 +16,7 @@
 
 	<properties>
 		<java.version>14</java.version>
+		
 		<json-patch.version>1.12</json-patch.version>
 		<spring-cloud.version>Hoxton.SR6</spring-cloud.version>
 		<org.mapstruct.version>1.4.0.Beta3</org.mapstruct.version>
@@ -164,6 +165,11 @@
 						</path>
 					</annotationProcessorPaths>
 				</configuration>
+			</plugin>
+			<!-- Enable integration tests run by maven failsafe plugin (pre-configured in pluginManagement of parent pom) -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>
