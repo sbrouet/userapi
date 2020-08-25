@@ -33,6 +33,7 @@ import com.sbr.userapi.model.User;
 import com.sbr.userapi.model.messaging.Message;
 import com.sbr.userapi.repository.UserRepository;
 import com.sbr.userapi.service.location.LocationService;
+import com.sbr.userapi.service.location.LocationTestConstants;
 import com.sbr.userapi.service.message.MessageService;
 import com.sbr.userapi.test.TestUtils;
 
@@ -120,7 +121,7 @@ public class UserServiceTest {
 				.thenReturn(List.of(userMarie));
 
 		// Mock the responses of locationService
-		Mockito.when(locationService.isCallerFromSwitzerland(TestUtils.SWISSCOM_CH_IP)).thenReturn(true);
+		Mockito.when(locationService.isCallerFromSwitzerland(LocationTestConstants.SWISSCOM_CH_IP)).thenReturn(true);
 		Mockito.when(locationService.isCallerFromSwitzerland(NOT_IN_SWITZERLAND_IP)).thenReturn(false);
 
 		// Mock the message service
@@ -200,7 +201,7 @@ public class UserServiceTest {
 	public void createUser_whenValidUserAndClientRequestFromSwitzerland_userShouldBeCreated()
 			throws CannotComputeLocationException, LocationNotAuthorizedException, CouldNotSendMessageBusMessage {
 		// Create user
-		final User user = userService.createUser(TestUtils.createTestUserCharlesNoId(), TestUtils.SWISSCOM_CH_IP);
+		final User user = userService.createUser(TestUtils.createTestUserCharlesNoId(), LocationTestConstants.SWISSCOM_CH_IP);
 
 		// Verify created user
 		assertThat(user).isNotNull();
@@ -240,7 +241,7 @@ public class UserServiceTest {
 		Mockito.doThrow(CouldNotSendMessageBusMessage.class).when(messageService).sendMessage(any(Message.Type.class),
 				anyLong());
 		assertThrows(CouldNotSendMessageBusMessage.class,
-				() -> userService.createUser(TestUtils.createTestUserCharlesNoId(), TestUtils.SWISSCOM_CH_IP));
+				() -> userService.createUser(TestUtils.createTestUserCharlesNoId(), LocationTestConstants.SWISSCOM_CH_IP));
 	}
 
 	/**

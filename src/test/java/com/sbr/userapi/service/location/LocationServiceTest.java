@@ -1,5 +1,9 @@
 package com.sbr.userapi.service.location;
 
+import static com.sbr.userapi.service.location.LocationTestConstants.AN_FR_IP;
+import static com.sbr.userapi.service.location.LocationTestConstants.FRANCE_COUNTRY_CODE_ISO_3166_1;
+import static com.sbr.userapi.service.location.LocationTestConstants.SWISSCOM_CH_IP;
+import static com.sbr.userapi.service.location.LocationTestConstants.SWITZERLAND_COUNTRY_CODE_ISO_3166_1;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.atLeast;
@@ -22,7 +26,6 @@ import org.springframework.web.client.RestTemplate;
 
 import com.sbr.userapi.configuration.ConfigurationBean;
 import com.sbr.userapi.exception.location.CannotComputeLocationException;
-import com.sbr.userapi.test.TestUtils;
 
 /**
  * Unit test for {@link LocationService}
@@ -35,35 +38,17 @@ import com.sbr.userapi.test.TestUtils;
 @Import(com.sbr.userapi.configuration.ConfigurationBean.class)
 public class LocationServiceTest {
 
-	/** An IP address from France, used for mocks */
-	private static final String AN_FR_IP = "90.8.134.100";
 	/**
 	 * Expected URL of the external Ip Api service when getting the country code for
-	 * {@link #AN_FR_IP}
+	 * {@link LocationTestConstants#AN_FR_IP}
 	 */
 	private static final String IP_API_SERVICE_URL_FOR_AN_FR_IP = "https://ipapi.co/" + AN_FR_IP + "/country";
 
 	/**
-	 * The ISO 3166-1 Alpha 2 code for country France<BR/>
-	 * See country code list at https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
-	 */
-	private static final String FRANCE_COUNTRY_CODE_ISO_3166_1 = "FR";
-
-	/**
 	 * Expected URL of the external Ip Api service when getting the country code for
-	 * {@link TestUtils#SWISSCOM_CH_IP}
+	 * {@link LocationTestConstants#SWISSCOM_CH_IP}
 	 */
-	private static final String IP_API_SERVICE_URL_FOR_AN_CH_IP = "https://ipapi.co/" + TestUtils.SWISSCOM_CH_IP
-			+ "/country";
-
-	/**
-	 * The ISO 3166-1 Alpha 2 code for country Switzerland<BR/>
-	 * See country code list at
-	 * https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2<BR/>
-	 * Note : purposely duplicated constant here instead of reusing the one from the
-	 * {@link LocationService} in order the test to be independant
-	 */
-	private static final String SWITZERLAND_COUNTRY_CODE_ISO_3166_1 = "CH";
+	private static final String IP_API_SERVICE_URL_FOR_AN_CH_IP = "https://ipapi.co/" + SWISSCOM_CH_IP + "/country";
 
 	@TestConfiguration
 	@SpringBootConfiguration
@@ -95,7 +80,7 @@ public class LocationServiceTest {
 	public void buildCountryCodeRestServiceURLForIP_checkURL() {
 		assertThat(locationService.buildCountryCodeRestServiceURLForIP(AN_FR_IP))
 				.isEqualTo(IP_API_SERVICE_URL_FOR_AN_FR_IP);
-		assertThat(locationService.buildCountryCodeRestServiceURLForIP(TestUtils.SWISSCOM_CH_IP))
+		assertThat(locationService.buildCountryCodeRestServiceURLForIP(SWISSCOM_CH_IP))
 				.isEqualTo(IP_API_SERVICE_URL_FOR_AN_CH_IP);
 	}
 
@@ -133,8 +118,7 @@ public class LocationServiceTest {
 		Mockito.when(restTemplate.getForEntity(IP_API_SERVICE_URL_FOR_AN_CH_IP, String.class)).thenReturn(mockResponse);
 
 		// Test
-		assertThat(locationService.getCountryCodeForIP(TestUtils.SWISSCOM_CH_IP))
-				.isEqualTo(SWITZERLAND_COUNTRY_CODE_ISO_3166_1);
+		assertThat(locationService.getCountryCodeForIP(SWISSCOM_CH_IP)).isEqualTo(SWITZERLAND_COUNTRY_CODE_ISO_3166_1);
 		Mockito.verify(mockResponse, atLeast(1)).getStatusCode();
 		Mockito.verify(mockResponse, atLeast(1)).getBody();
 	}
@@ -148,13 +132,18 @@ public class LocationServiceTest {
 
 		// Test
 		assertThrows(CannotComputeLocationException.class, () -> {
-			locationService.getCountryCodeForIP(TestUtils.SWISSCOM_CH_IP);
+			locationService.getCountryCodeForIP(SWISSCOM_CH_IP);
 		});
 		Mockito.verify(mockResponse, atLeast(1)).getStatusCode();
 		Mockito.verify(mockResponse, times(1)).getBody();
 		Mockito.verify(restTemplate, times(1)).getForEntity(IP_API_SERVICE_URL_FOR_AN_CH_IP, String.class);
 	}
 
+	/**
+	 * Test method {@link LocationService#isCallerFromSwitzerland(String)} : when
+	 * requesting an invalid IP, external services returns an "Undefined" response
+	 * and an exception should be raised
+	 */
 	@Test
 	public void getCountryCodeForIP_externalServiceFailure_bodyUndefinedValue_ShouldRaiseException() {
 		ResponseEntity<String> mockResponse = Mockito.mock(ResponseEntity.class);
@@ -165,7 +154,7 @@ public class LocationServiceTest {
 
 		// Test
 		assertThrows(CannotComputeLocationException.class, () -> {
-			locationService.getCountryCodeForIP(TestUtils.SWISSCOM_CH_IP);
+			locationService.getCountryCodeForIP(SWISSCOM_CH_IP);
 		});
 		Mockito.verify(mockResponse, atLeast(1)).getStatusCode();
 		Mockito.verify(mockResponse, times(1)).getBody();
@@ -178,7 +167,7 @@ public class LocationServiceTest {
 	 */
 	@Test
 	public void isCallerFromSwitzerland_true() throws CannotComputeLocationException {
-		doTest_isCallerFromSwitzerland(TestUtils.SWISSCOM_CH_IP, SWITZERLAND_COUNTRY_CODE_ISO_3166_1, true);
+		doTest_isCallerFromSwitzerland(SWISSCOM_CH_IP, SWITZERLAND_COUNTRY_CODE_ISO_3166_1, true);
 	}
 
 	/**

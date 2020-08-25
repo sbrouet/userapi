@@ -73,8 +73,7 @@ public class LocationService {
 
 	/**
 	 * Get the country code for given IP address<BR/>
-	 * WARNING : this method does call an external REST service (see
-	 * {@link #IP_API_REST_URL_PATTERN})
+	 * WARNING : this method does call an external REST service
 	 * 
 	 * @param ip IP address to get code for
 	 * @return the ISO 3166-1 Alpha 2 country code
